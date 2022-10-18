@@ -1,0 +1,19 @@
+server:
+  port: 8080
+  servlet:
+    contextPath: /hello
+
+spring:
+  resources:
+    add-mappings: true
+  profiles:
+    active: default
+
+logging:
+  level:
+    org:
+      springframework:
+        web: ERROR
+    com:
+      sampleapp:
+        helloworld: DEBUG
