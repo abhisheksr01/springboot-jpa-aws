@@ -4,11 +4,12 @@ server:
     contextPath: /hello
 
 spring:
+  jacksone:
+    time: UTC
   resources:
     add-mappings: true
   profiles:
     active: default
-
 logging:
   level:
     org:
@@ -16,4 +17,4 @@ logging:
         web: ERROR
     com:
       sampleapp:
-        helloworld: DEBUG
+        helloworld: INFO
