@@ -1,6 +1,0 @@
-server:
-  port: 8081
-  servlet:
-    contextPath: /hello
-
-defaultURL: http://localhost:8081/

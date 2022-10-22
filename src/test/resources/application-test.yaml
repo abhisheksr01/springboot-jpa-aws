@@ -4,3 +4,40 @@ server:
     contextPath: /hello
 
 defaultURL: http://localhost:8081/
+
+spring:
+  jacksone:
+    time: UTC
+  resources:
+    add-mappings: true
+  jpa:
+    properties:
+      hibernate:
+        dialect: 'org.hibernate.dialect.PostgreSQLDialect'
+    hibernate:
+      ddl-auto: create-only
+      show: true
+  datasource:
+    driver-class-name: 'org.testcontainers.jdbc.ContainerDatabaseDriver'
+    #    driverClassName: 'org.postgresql.Driver'
+    #    url: 'jdbc:postgresql://localhost:5432/postgres'
+    #    url: 'jdbc:tc:postgresql:9.6:///?TC_INITSCRIPT=file:src/main/resources/init_db.sql'
+    url: 'jdbc:tc:postgresql:15.0-alpine:///'
+    username: postgres
+    password: secret
+
+#  spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialect
+#  spring.jpa.hibernate.ddl-auto=none
+#  spring.jpa.hibernate.show-sql=true
+#  spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+#  spring.datasource.username=postgres
+#  spring.datasource.password=admin
+
+logging:
+  level:
+    org:
+      springframework:
+        web: ERROR
+    com:
+      sampleapp:
+        helloworld: ERROR

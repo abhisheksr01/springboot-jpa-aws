@@ -5,10 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDate;
@@ -39,6 +36,15 @@ public class HelloWorldController {
         this.helloWorldService.updateUserDetails(userDetailsDTO);
         log.debug("HelloWorldController:updateUserDetails: Executed successfully");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping(value = "/{userName}")
+    public Response getBirthdayMessage(@PathVariable String userName) {
+        log.info("HelloWorldController:updateUserDetails:Init...");
+        validateUserName(userName);
+        log.debug("HelloWorldController:updateUserDetails: Invoking helloWorldService.getBirthMessage with : {}",
+                userName);
+        return this.helloWorldService.getBirthdayMessage(userName.toLowerCase());
     }
 
     private void validateDateOfBirth(UserDetails userDetails) {

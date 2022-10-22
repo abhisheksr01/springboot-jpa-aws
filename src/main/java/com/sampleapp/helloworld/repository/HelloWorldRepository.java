@@ -1,9 +1,10 @@
 package com.sampleapp.helloworld.repository;
 
-import com.sampleapp.helloworld.controller.UserDetailsDTO;
+import com.sampleapp.helloworld.repository.dao.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public class HelloWorldRepository {
-    public void updateUserDetailsInDB(UserDetailsDTO userDetailsDTO) {
-
-    }
+@Repository
+public interface HelloWorldRepository extends JpaRepository<User, Long> {
+    User findByNameIgnoreCase(String name);
 }

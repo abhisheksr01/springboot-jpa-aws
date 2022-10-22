@@ -21,7 +21,6 @@ class HelloWorldControllerTest {
     private UserDetails userDetails;
     private LocalDate currentLocalDate = LocalDate.now(ZoneId.of("UTC"));
     private LocalDate oneDayOldLocalDate = currentLocalDate.minusDays(1);
-    ;
 
     @SneakyThrows
     @BeforeEach
@@ -35,7 +34,7 @@ class HelloWorldControllerTest {
     void updateUserDetails_shouldReturn204NoContent() throws ParseException {
         userDetails.setDateOfBirth(oneDayOldLocalDate);
 
-        ResponseEntity actualResponse = helloWorldController.updateUserDetails("abhishek", userDetails);
+        ResponseEntity actualResponse = helloWorldController.updateUserDetails("AbHishek", userDetails);
 
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getStatusCode());
     }
@@ -87,13 +86,21 @@ class HelloWorldControllerTest {
 
     @Test
     void updateUserDetails_shouldInvokeService_whenValidInputDataIsPassed() {
-        UserDetailsDTO userDetailsDTO = new UserDetailsDTO();
-        userDetailsDTO.setUserName("abhishek");
-        userDetailsDTO.setDateOfBirth(oneDayOldLocalDate);
+        UserDetailsDTO userDetailsDTO = new UserDetailsDTO("abhishek", oneDayOldLocalDate);
         userDetails.setDateOfBirth(oneDayOldLocalDate);
 
         helloWorldController.updateUserDetails("abhishek", userDetails);
 
         verify(mockHelloWorldService, times(1)).updateUserDetails(userDetailsDTO);
+    }
+
+    @Test
+    void getBirthdayMessage_shouldReturnBirthDayMessage() {
+        Response expectedResponse = new Response("Hello,abhishek! Happy Birthday");
+        when(mockHelloWorldService.getBirthdayMessage("abhishek")).thenReturn(expectedResponse);
+
+        Response actualResponse = helloWorldController.getBirthdayMessage("abhishek");
+
+        assertEquals("Hello,abhishek! Happy Birthday", actualResponse.getMessage());
     }
 }

@@ -1,11 +1,10 @@
 plugins {
-	id 'org.springframework.boot' version '2.7.3'
-	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
-	id 'java'
-	id 'jacoco'
-	id 'info.solidsoft.pitest' version '1.9.0'
-	id 'checkstyle'
-	id "org.owasp.dependencycheck" version "7.2.1"
+    id 'org.springframework.boot' version '2.7.5'
+    id 'io.spring.dependency-management' version '1.0.13.RELEASE'
+    id 'java'
+    id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.9.0'
+    id "org.owasp.dependencycheck" version "7.2.1"
 }
 
 String buildId = project.hasProperty('buildId') ? project['buildId'] : 'DEV'
@@ -17,120 +16,122 @@ version = "${semanticVersion}.${buildId}"
  **  https://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/htmlsingle/#packaging-executable.and-plain-archives
  **/
 jar {
-	enabled = false
+    enabled = false
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 ext {
-	mapstructVersion = "1.5.2.Final"
-	lombokVersion = "1.18.24"
-	wireMockVersion = "2.27.2"
-	ioCucumberVersion = "7.8.0"
-	swaggerVersion = "3.0.0"
-	jacocoVersion = "0.8.5"
-	pitest = "0.16"
-	junitVintage = "5.9.0"
+    mapstructVersion = "1.5.2.Final"
+    lombokVersion = "1.18.24"
+    wireMockVersion = "2.27.2"
+    ioCucumberVersion = "7.8.0"
+    swaggerVersion = "3.0.0"
+    jacocoVersion = "0.8.5"
+    pitest = "0.16"
+    junitVintage = "5.9.0"
 }
 
 dependencies {
-	implementation ('org.springframework.boot:spring-boot-starter-web')
-	implementation ('org.springframework.boot:spring-boot-starter-actuator')
-	implementation ('org.springframework.boot:spring-boot-starter-data-jpa')
-	testImplementation('org.springframework.boot:spring-boot-starter-test')
-	// Cucumber Dependencies for BDD
-	testImplementation "io.cucumber:cucumber-java:${ioCucumberVersion}"
-	testImplementation "io.cucumber:cucumber-junit:${ioCucumberVersion}"
-	testImplementation "io.cucumber:cucumber-spring:${ioCucumberVersion}"
-	testImplementation "org.junit.vintage:junit-vintage-engine:${junitVintage}"
-	testImplementation 'org.testcontainers:postgresql'
-	//Lombok Dependencies
-	implementation "org.projectlombok:lombok:${lombokVersion}"
-	testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-	//MapStruct Dependencies
-	implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-	testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-	//Swagger
-//	implementation "io.springfox:springfox-boot-starter:${swaggerVersion}"
-	//pitest
-	implementation "org.pitest:pitest-junit5-plugin:${pitest}"
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.yaml', module: 'snakeyaml'
+    }
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    // Cucumber Dependencies for BDD
+    testImplementation "io.cucumber:cucumber-java:${ioCucumberVersion}"
+    testImplementation "io.cucumber:cucumber-junit:${ioCucumberVersion}"
+    testImplementation "io.cucumber:cucumber-spring:${ioCucumberVersion}"
+    testImplementation "org.junit.vintage:junit-vintage-engine:${junitVintage}"
+    testImplementation 'org.testcontainers:postgresql:1.17.5'
+    testImplementation "org.testcontainers:junit-jupiter:1.17.5"
 
-	/*
+    implementation 'org.postgresql:postgresql:42.5.0'
+    //Lombok Dependencies
+    implementation "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    //MapStruct Dependencies
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    //Swagger
+//	implementation "io.springfox:springfox-boot-starter:${swaggerVersion}"
+    //pitest
+    implementation "org.pitest:pitest-junit5-plugin:${pitest}"
+
+    /*
      *https://docs.gradle.org/current/userguide/dependency_management.html#sec:module_substitution
      * Example 109. Example: Blacklisting a version with a replacement
     */
-	configurations.all {
-		resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-			if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava' && details.requested.version == '21.0') {
-				details.useVersion '31.1-jre'
-				details.because 'Fixes vulnerability in prior guava versions'
-			}
-		}
-	}
-	configurations.all {
-		resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-			if (details.requested.group == 'commons-beanutils' && details.requested.name == 'commons-beanutils' && details.requested.version == '1.9.3') {
-				details.useVersion '1.9.4'
-				details.because 'Fixes vulnerability in prior versions'
-			}
-		}
-	}
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'org.yaml' && details.requested.name == 'snakeyaml' && details.requested.version == '1.30') {
+                details.useVersion '1.33'
+                details.because 'Fixes vulnerability in prior snakeyaml versions'
+            }
+        }
+    }
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava' && details.requested.version == '21.0') {
+                details.useVersion '31.1-jre'
+                details.because 'Fixes vulnerability in prior guava versions'
+            }
+        }
+    }
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'commons-beanutils' && details.requested.name == 'commons-beanutils' && details.requested.version == '1.9.3') {
+                details.useVersion '1.9.4'
+                details.because 'Fixes vulnerability in prior versions'
+            }
+        }
+    }
 }
 
 // Property can be passed along with test task to avoid execution of e2e
 test {
-	if (project.hasProperty('excludee2e')) {
-		println '********************************************************'
-		println '                   Excluding E2E tests'
-		println '********************************************************'
-		exclude '**/*e2e*'
-	}
-	if (project.hasProperty('e2e')) {
-		println '********************************************************'
-		println '                   Executing E2E tests'
-		println '********************************************************'
-		//include all tests from package
-		filter {
-			includeTestsMatching "com.uk.companieshouse.e2e.*"
-		}
-	}
-	useJUnitPlatform()
+    if (project.hasProperty('excludee2e')) {
+        println '********************************************************'
+        println '                   Excluding E2E tests'
+        println '********************************************************'
+        exclude '**/*e2e*'
+    }
+    if (project.hasProperty('e2e')) {
+        println '********************************************************'
+        println '                   Executing E2E tests'
+        println '********************************************************'
+        //include all tests from package
+        filter {
+            includeTestsMatching "com.uk.companieshouse.e2e.*"
+        }
+    }
+    useJUnitPlatform()
 }
 
-//Checkstyle for code style and quality
-checkstyle {
-	toolVersion '7.8.1'
-}
-tasks.withType(Checkstyle) {
-	reports {
-		xml.enabled false
-		html.enabled true
-		html.stylesheet resources.text.fromFile("${rootDir}/config/xls/checksyle-style.xsl")
-	}
-}
 
 // Jacoco for Code Coverage
 jacoco {
-	toolVersion = "${jacocoVersion}"
-	reportsDir = file("$buildDir/customJacocoReportDir")
+    toolVersion = "${jacocoVersion}"
+    reportsDir = file("$buildDir/customJacocoReportDir")
 }
 
 // Runs Jacoco tasks when build task is executed
 build {
-	finalizedBy jacocoTestReport
-	finalizedBy jacocoTestCoverageVerification
+    finalizedBy jacocoTestReport
+    finalizedBy jacocoTestCoverageVerification
 }
 // Setting custom parameters when executing jacocoTestReport task
 jacocoTestReport {
-	reports {
-		xml.enabled false
-		csv.enabled false
-		html.destination file("${buildDir}/reports/jacocoHtml")
-	}
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/reports/jacocoHtml")
+    }
 //    afterEvaluate {
 //        classDirectories.setFrom(files(classDirectories.files.collect {
 //            fileTree(dir: it,
@@ -142,48 +143,48 @@ jacocoTestReport {
 
 // Setting custom parameters when executing jacocoTestCoverageVerification task for setting rules
 jacocoTestCoverageVerification {
-	dependsOn jacocoTestReport
-	violationRules {
-		rule {
-			limit {
-				minimum = 0.9
-			}
-		}
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                minimum = 1.0
+            }
+        }
 
-		rule {
-			enabled = false
-			element = 'CLASS'
-			includes = ['org.gradle.*']
+        rule {
+            enabled = false
+            element = 'CLASS'
+            includes = ['org.gradle.*']
 
-			limit {
-				counter = 'LINE'
-				value = 'TOTALCOUNT'
-				maximum = 1.0
-			}
-		}
-	}
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 1.0
+            }
+        }
+    }
 }
 pitest {
-	pitestVersion = "1.5.1"
-	testPlugin = "junit5"
-	targetClasses = ['com.uk.companieshouse.*']  // by default "${project.group}.*"
-	targetTests = ['com.uk.companieshouse.*']  // by default "${project.group}.*"
-	// TODO: Mutation tests failing due to port already in use exception, fix them and then we can remove below
-	excludedTestClasses = ['com.uk.companieshouse.e2e.*', 'com.uk.companieshouse.CompaniesHouseApplicationTest*']
+    pitestVersion = "1.5.1"
+    testPlugin = "junit5"
+    targetClasses = ['com.uk.companieshouse.*']  // by default "${project.group}.*"
+    targetTests = ['com.uk.companieshouse.*']  // by default "${project.group}.*"
+    // TODO: Mutation tests failing due to port already in use exception, fix them and then we can remove below
+    excludedTestClasses = ['com.uk.companieshouse.e2e.*', 'com.uk.companieshouse.CompaniesHouseApplicationTest*']
 }
 // owasp dependency vulnerability check
 // Reference doc : https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
 dependencyCheck {
-	// the default artifact types that will be analyzed.
-	analyzedTypes = ['jar']
-	// CI-tools usually needs XML-reports, but humans needs HTML.
-	formats = ['HTML', 'JUNIT']
-	// Specifies if the build should be failed if a CVSS score equal to or above a specified level is identified.
-	failBuildOnCVSS = 8
-	// Output directory where the report should be generated
-	outputDirectory = "build/reports/dependency-vulnerabilities"
-	// specify a list of known issues which contain false-positives to be suppressed
-	suppressionFiles = ["$projectDir/config/dependencycheck/dependency-check-suppression.xml"]
-	// Sets the number of hours to wait before checking for new updates from the NVD, defaults to 4.
-	cveValidForHours = 24
+    // the default artifact types that will be analyzed.
+    analyzedTypes = ['jar']
+    // CI-tools usually needs XML-reports, but humans needs HTML.
+    formats = ['HTML', 'JUNIT']
+    // Specifies if the build should be failed if a CVSS score equal to or above a specified level is identified.
+    failBuildOnCVSS = 8
+    // Output directory where the report should be generated
+    outputDirectory = "build/reports/dependency-vulnerabilities"
+    // specify a list of known issues which contain false-positives to be suppressed
+    suppressionFiles = ["$projectDir/config/dependencycheck/dependency-check-suppression.xml"]
+    // Sets the number of hours to wait before checking for new updates from the NVD, defaults to 4.
+    cveValidForHours = 24
 }
