@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+  snyk: snyk/snyk@1.2.3
+  
 executors:
   base-jdk8:
     docker:
