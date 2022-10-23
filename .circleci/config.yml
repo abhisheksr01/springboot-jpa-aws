@@ -131,8 +131,6 @@ jobs:
       artifact_path:
         type: string
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
       - *mount_workspace
       - *restore_gradlew_cache
       - *restore_gradle_cache
