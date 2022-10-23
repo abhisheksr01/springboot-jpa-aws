@@ -183,7 +183,7 @@ jobs:
       - run:
           name: Lint Docker file
           command: |
-            ./scripts/docker-build.sh lint_docker_file "ci.Dockerfile"
+            ./scripts/docker-build.sh lint_docker_file "Dockerfile"
       - run:
           name: Build Image
           command: |
