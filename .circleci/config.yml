@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   snyk: snyk/snyk@1.2.3
-  
+
 executors:
   base-jdk8:
     docker:
@@ -90,6 +90,14 @@ jobs:
             - ~/.gradle/caches
           key: v2-gradle-cache-{{ checksum "build.gradle" }}
       - *persist_to_workspace
+  snyk-scan:
+    executor: base-jdk8
+    description: Snyk Code Scan
+    steps:
+      - *mount_workspace
+      - *restore_gradlew_cache
+      - *restore_gradle_cache
+      - snyk/scan
   test:
     executor: base-jdk8
     description: Unit & E2E Tests
@@ -280,6 +288,11 @@ workflows:
       - build:
           <<: *only_allowed_branches
           name: Build
+      - snyk-scan:
+          <<: *only_allowed_branches
+          name: SnykScan
+          requires:
+            - Build
       - test:
           name: Unit & E2E Tests
           requires:
