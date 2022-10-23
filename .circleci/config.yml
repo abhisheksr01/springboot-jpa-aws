@@ -99,8 +99,6 @@ jobs:
       - *restore_gradle_cache
       - snyk/scan:
           severity-threshold: high
-      - snyk/scan-iac:
-          severity-threshold: high
   test:
     executor: base-jdk8
     description: Unit & E2E Tests
@@ -293,7 +291,11 @@ workflows:
       - snyk-scan:
           <<: *only_allowed_branches
           <<: *credential_context
-          name: SnykScan
+          name: Snyk App Scan
+          requires:
+            - Build
+      - snyk/scan-iac:
+          name: Snyk IAC Scan
           requires:
             - Build
       - test:
@@ -332,7 +334,8 @@ workflows:
           requires:
             - Jacoco Code Coverage
 #            - Checkstyle
-            - SnykScan
+            - Snyk App Scan
+            - Snyk IAC Scan
             - Mutation Tests
             - Dependency Vulnerability Checks
       - hold:
