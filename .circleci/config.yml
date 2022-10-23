@@ -119,6 +119,8 @@ jobs:
       artifact_path:
         type: string
     steps:
+      - setup_remote_docker:
+          version: 20.10.14
       - *mount_workspace
       - *restore_gradlew_cache
       - *restore_gradle_cache
@@ -275,13 +277,13 @@ workflows:
           artifact_path: build/reports/jacocoHtml
           requires:
             - Unit & E2E Tests
-      - gradle_execute_task:
-          name: Checkstyle
-          step_name: Check styling and generate report
-          gradle_task: check
-          artifact_path: build/reports/checkstyle
-          requires:
-            - Build
+#      - gradle_execute_task:
+#          name: Checkstyle
+#          step_name: Check styling and generate report
+#          gradle_task: check
+#          artifact_path: build/reports/checkstyle
+#          requires:
+#            - Build
       - gradle_execute_task:
           name: Mutation Tests
           step_name: Perform Mutation Testing on Unit Tests
@@ -299,7 +301,7 @@ workflows:
           name: Docker Lint Build Scan Push
           requires:
             - Jacoco Code Coverage
-            - Checkstyle
+#            - Checkstyle
             - Mutation Tests
             - Dependency Vulnerability Checks
       - hold:
