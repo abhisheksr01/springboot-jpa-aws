@@ -51,16 +51,11 @@ aliases:
     restore_cache:
       keys:
         - v2-dependency-cache-{{ checksum "build.gradle" }}
-  - &only_allowed_branches
+  - &main_branch
     filters:
       branches:
         only:
           - main
-  - &only_master
-    filters:
-      branches:
-        only:
-          - master
   - &persist_to_workspace
     persist_to_workspace:
       root: .
@@ -286,15 +281,17 @@ workflows:
   workflow-all-jobs:
     jobs:
       - build:
-          <<: *only_allowed_branches
+          <<: *main_branch
           name: Build
       - snyk-scan:
-          <<: *only_allowed_branches
+          <<: *main_branch
           <<: *credential_context
           name: Snyk App Scan
           requires:
             - Build
       - snyk/scan-iac:
+          <<: *main_branch
+          <<: *credential_context
           name: Snyk IAC Scan
           requires:
             - Build
@@ -377,7 +374,7 @@ workflows:
     triggers:
       - schedule:
           cron: "0 8 * * 5"
-          <<: *only_master
+          <<: *main_branch
     jobs:
       - check_dependency_vulnerability:
           name: Dependency Vulnerability Checks
