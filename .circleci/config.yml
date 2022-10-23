@@ -290,6 +290,7 @@ workflows:
           name: Build
       - snyk-scan:
           <<: *only_allowed_branches
+          <<: *credential_context
           name: SnykScan
           requires:
             - Build
