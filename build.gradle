@@ -107,7 +107,7 @@ test {
         println '********************************************************'
         //include all tests from package
         filter {
-            includeTestsMatching "com.sampleadd.helloworld.e2e.*"
+            includeTestsMatching "com.sampleapp.helloworld.e2e.*"
         }
     }
     useJUnitPlatform()
@@ -167,10 +167,10 @@ jacocoTestCoverageVerification {
 pitest {
     pitestVersion = "1.5.1"
     testPlugin = "junit5"
-    targetClasses = ['com.sampleadd.helloworld.*']  // by default "${project.group}.*"
-    targetTests = ['com.sampleadd.helloworld.*']  // by default "${project.group}.*"
+    targetClasses = ['com.sampleapp.helloworld.*']  // by default "${project.group}.*"
+    targetTests = ['com.sampleapp.helloworld.*']  // by default "${project.group}.*"
     // TODO: Mutation tests failing due to port already in use exception, fix them and then we can remove below
-    excludedTestClasses = ['com.sampleadd.helloworld.e2e.*', 'com.sampleadd.helloworld.HelloWorldApplicationTest*']
+    excludedTestClasses = ['com.sampleapp.helloworld.e2e.*', 'com.sampleapp.helloworld.HelloWorldApplicationTest*']
 }
 // owasp dependency vulnerability check
 // Reference doc : https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
