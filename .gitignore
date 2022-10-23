@@ -28,3 +28,4 @@ hs_err_pid*
 .dccache
 .vscode
 .DS_Store
+.gradle/**

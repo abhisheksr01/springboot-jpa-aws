@@ -92,9 +92,19 @@ jobs:
     steps:
       - setup_remote_docker:
           version: 20.10.14
+          docker_layer_caching: true
       - *mount_workspace
       - *restore_gradlew_cache
       - *restore_gradle_cache
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo "export TESTCONTAINERS_HOST_OVERRIDE=localhost" \
+            >> $BASH_ENV
+      - run:
+          name: Testcontainers tunnel
+          background: true
+          command: .circleci/autoforward.py
       - run:
           name: Run Unit and E2E tests
           command: ./gradlew test
