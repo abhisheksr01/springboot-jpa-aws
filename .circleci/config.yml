@@ -97,7 +97,8 @@ jobs:
       - *mount_workspace
       - *restore_gradlew_cache
       - *restore_gradle_cache
-      - snyk/scan
+      - snyk/scan:
+          severity-threshold: high
   test:
     executor: base-jdk8
     description: Unit & E2E Tests
@@ -233,7 +234,6 @@ jobs:
         type: string
     steps:
       - *mount_workspace
-      - checkout
       - run:
           name: Helm chart lint
           command: helm lint ./kubernetes/helm-chart/
