@@ -198,7 +198,7 @@ jobs:
           path: reports
           when: always
       - persist_to_workspace:
-          root: /root/project/version
+          root: /root/project
           paths:
             - docker-version.txt
   check_image_vulnerability:
