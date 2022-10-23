@@ -20,7 +20,7 @@ public interface UserDetailsToUserDetailsDTOMapper {
     UserDetailsDTO mapUserInputsToUserDetailsDTO(String userName, LocalDate dateOfBirth);
 
     @AfterMapping
-    default void convertNameToUpperCase(@MappingTarget UserDetailsDTO userDetailsDTO) {
+    default void convertNameLowerCaseAndTrim(@MappingTarget UserDetailsDTO userDetailsDTO) {
         userDetailsDTO.setUserName(userDetailsDTO.getUserName().toLowerCase().trim());
     }
 }

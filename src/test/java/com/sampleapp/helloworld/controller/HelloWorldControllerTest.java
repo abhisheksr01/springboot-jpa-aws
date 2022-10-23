@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -47,7 +48,7 @@ class HelloWorldControllerTest {
 
         try {
             helloWorldController.updateUserDetails("12345abhishek", userDetails);
-        } catch (Exception exception) {
+        } catch (HttpClientErrorException exception) {
             actualErrorMessage = exception.getMessage();
         }
 
@@ -62,7 +63,7 @@ class HelloWorldControllerTest {
 
         try {
             helloWorldController.updateUserDetails("abhishek", userDetails);
-        } catch (Exception exception) {
+        } catch (HttpClientErrorException exception) {
             actualErrorMessage = exception.getMessage();
         }
 
@@ -77,7 +78,7 @@ class HelloWorldControllerTest {
 
         try {
             helloWorldController.updateUserDetails("abhishek", userDetails);
-        } catch (Exception exception) {
+        } catch (HttpClientErrorException exception) {
             actualErrorMessage = exception.getMessage();
         }
 

@@ -7,7 +7,9 @@ import com.sampleapp.helloworld.repository.dao.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -28,10 +30,11 @@ class HelloWorldServiceTest {
 
     @Test
     void updateUserDetailsInDB_shouldInvokeRepositorySaveMethodOnce_whenUserExist() {
-        UserDetailsDTO userDetailsDTO = new UserDetailsDTO("rajput", oneDayOldLocalDate);
-        User expectedUser = new User("rajput", oneDayOldLocalDate);
-        User mockExistingUser = new User("abhishek", oneDayOldLocalDate);
-        when(mockHelloWorldRepository.findByNameIgnoreCase("abhishek")).thenReturn(mockExistingUser);
+        String expectedUserName = "expectedUserName";
+        UserDetailsDTO userDetailsDTO = new UserDetailsDTO(expectedUserName, oneDayOldLocalDate);
+        User expectedUser = new User(expectedUserName, oneDayOldLocalDate);
+        User mockExistingUser = new User(expectedUserName, oneDayOldLocalDate);
+        when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockExistingUser);
 
         helloWorldService.updateUserDetails(userDetailsDTO);
 
@@ -49,6 +52,22 @@ class HelloWorldServiceTest {
     }
 
     @Test
+    void getBirthdayMessage_shouldThrowExceptionIfUserDoNotExist() {
+        String userName = "abhishek";
+        String expectedErrorMessage = "404 No such user exists";
+        String actualErrorMessage = null;
+        when(mockHelloWorldRepository.findByNameIgnoreCase(userName)).thenReturn(null);
+
+        try {
+            helloWorldService.getBirthdayMessage(userName);
+        } catch (HttpClientErrorException exception) {
+            actualErrorMessage = exception.getMessage();
+        }
+
+        assertEquals(expectedErrorMessage, actualErrorMessage);
+    }
+
+    @Test
     void getBirthdayMessage_shouldReturnHappyBirthdayMessage_whenUsersBirthdayIsToday() {
         String expectedUserName = "abhishek";
         String expectedMessage = "Hello, " + expectedUserName + "! Happy Birthday!";
@@ -63,10 +82,27 @@ class HelloWorldServiceTest {
 
     @ParameterizedTest
     @ValueSource(ints = {20, 44})
-    void getBirthdayMessage_shouldReturnBirthdayMessageWithDays_whenUsersBirthdayIsInFuture(int expectedBirthdayInDays) {
+    void getBirthdayMessage_shouldReturnBirthdayMessageWithDays_whenUserBirthdayIsInFuture(int expectedBirthdayInDays) {
         String expectedUserName = "abhishek";
         String expectedMessage = "Hello, " + expectedUserName + "! Your birthday is in " + expectedBirthdayInDays + " day(s)";
         LocalDate dateOfBirth = LocalDate.now(ZoneId.of("UTC")).minusYears(1).plusDays(expectedBirthdayInDays);
+        User mockUser = new User(expectedUserName, dateOfBirth);
+        when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockUser);
+
+        Response actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
+
+        assertEquals(expectedMessage, actualResponse.getMessage());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "20, 345",
+            "44, 321"
+    })
+    void getBirthdayMessage_shouldReturnBirthdayMessageWithDays_whenUsersBirthdayIsInPast(int daysInPast, int expectedBirthdayInDays) {
+        String expectedUserName = "abhishek";
+        String expectedMessage = "Hello, " + expectedUserName + "! Your birthday is in " + expectedBirthdayInDays + " day(s)";
+        LocalDate dateOfBirth = LocalDate.now(ZoneId.of("UTC")).minusYears(1).minusDays(daysInPast);
         User mockUser = new User(expectedUserName, dateOfBirth);
         when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockUser);
 
