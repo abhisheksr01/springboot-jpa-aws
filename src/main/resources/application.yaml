@@ -16,20 +16,12 @@ spring:
         dialect: 'org.hibernate.dialect.PostgreSQLDialect'
     hibernate:
       ddl-auto: create-only
-      show: true
+      show: false
   datasource:
     driver-class-name: 'org.postgresql.Driver'
-    #    driverClassName: 'org.postgresql.Driver'
     url: 'jdbc:postgresql://localhost:5432/postgres'
     username: postgres
     password: secret
-
-#  spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialect
-#  spring.jpa.hibernate.ddl-auto=none
-#  spring.jpa.hibernate.show-sql=true
-#  spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
-#  spring.datasource.username=postgres
-#  spring.datasource.password=admin
 
 logging:
   level:

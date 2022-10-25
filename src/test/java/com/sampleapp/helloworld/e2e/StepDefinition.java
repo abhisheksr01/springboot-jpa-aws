@@ -32,7 +32,7 @@ public class StepDefinition extends SpringIntegration {
         headers.add("Accept", "*/*");
 
         HttpEntity<String> requestEntity = new HttpEntity<String>(this.userDetails, headers);
-        this.responseEntity = restTemplate.exchange(getDefaultURL() + "hello/" + userName, HttpMethod.PUT,
+        this.responseEntity = getRestTemplate().exchange(getDefaultURL() + "hello/" + userName, HttpMethod.PUT,
                 requestEntity, String.class);
     }
 
@@ -54,7 +54,7 @@ public class StepDefinition extends SpringIntegration {
 
     @When("The user makes a GET request")
     public void the_user_makes_a_get_request() {
-        this.responseEntity = restTemplate.getForEntity(getDefaultURL() + "hello/" + this.userName, Response.class);
+        this.responseEntity = getRestTemplate().getForEntity(getDefaultURL() + "hello/" + this.userName, Response.class);
     }
 
     @Then("The API should return a status code {int} and message {string}")

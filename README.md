@@ -1,7 +1,12 @@
-# sample-app-with-db-connection
+# springboot-jp
 
-This is a simple Spring boot app to store and retrieve user data from a postgres sql database.
+## Introduction
+This is a simple Spring Boot + JPA + Postgres application to demonstrate a helloworld style application.
+
+The application exposed 2 endpoints as below:
+
+1. GET - http://localhost:8080/hello/{username}
 
 ```shell
-docker run --name postgres -e POSTGRES_PASSWORD=secret -d -p 5432:5432 postgres
+1
 ```
