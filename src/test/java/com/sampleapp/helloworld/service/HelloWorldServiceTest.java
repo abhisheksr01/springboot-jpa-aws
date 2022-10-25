@@ -54,7 +54,7 @@ class HelloWorldServiceTest {
     @Test
     void getBirthdayMessage_shouldThrowExceptionIfUserDoNotExist() {
         String userName = "abhishek";
-        String expectedErrorMessage = "404 No such user exists";
+        String expectedErrorMessage = "404 No user found, please check the username";
         String actualErrorMessage = null;
         when(mockHelloWorldRepository.findByNameIgnoreCase(userName)).thenReturn(null);
 

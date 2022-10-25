@@ -42,20 +42,26 @@ public class HelloWorldService {
         User user = this.helloWorldRepository.findByNameIgnoreCase(userName);
         if (isNull(user)) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND,
-                    "No such user exists");
+                    "No user found, please check the username");
         }
-        String name = user.getName();
-        LocalDate dateOfBirth = user.getDateOfBirth();
-        LocalDate currentDate = LocalDate.now(ZoneId.of("UTC"));
-        long age = YEARS.between(dateOfBirth, currentDate);
+        String birthDayMessage = this.getMessage(user);
+        return new Response(birthDayMessage);
+    }
+
+    private String getMessage(User user) {
+        final LocalDate dateOfBirth = user.getDateOfBirth();
+        final LocalDate currentDate = LocalDate.now(ZoneId.of("UTC"));
+        final long age = YEARS.between(dateOfBirth, currentDate);
         LocalDate nextBirthday = dateOfBirth.plusYears(age);
+
         if (nextBirthday.equals(currentDate)) {
-            return new Response("Hello, " + name + "! Happy Birthday!");
+            return "Hello, " + user.getName() + "! Happy Birthday!";
         } else if (nextBirthday.isBefore(currentDate)) {
             nextBirthday = dateOfBirth.plusYears(age + 1);
         }
+
         long daysUntilNextBirthday = DAYS.between(currentDate, nextBirthday);
         int days = Math.toIntExact(daysUntilNextBirthday);
-        return new Response("Hello, " + name + "! Your birthday is in " + days + " day(s)");
+        return "Hello, " + user.getName() + "! Your birthday is in " + days + " day(s)";
     }
 }

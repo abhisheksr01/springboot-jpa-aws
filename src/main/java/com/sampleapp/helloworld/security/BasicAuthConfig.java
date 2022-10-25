@@ -1,4 +1,4 @@
-package com.sampleapp.helloworld.security.SecurityConfig;
+package com.sampleapp.helloworld.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

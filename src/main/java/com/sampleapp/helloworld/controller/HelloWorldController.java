@@ -27,20 +27,23 @@ public class HelloWorldController {
     @SneakyThrows
     @PutMapping(value = "/{userName}")
     public ResponseEntity updateUserDetails(@PathVariable String userName, @RequestBody UserDetails userDetails) {
-        log.info("HelloWorldController:updateUserDetails:Init...");
+        log.info("HelloWorldController:updateUserDetails: validating the request...");
         validateUserName(userName);
         validateDateOfBirth(userDetails);
+
         UserDetailsDTO userDetailsDTO = MAPPER.mapUserInputsToUserDetailsDTO(userName, userDetails.getDateOfBirth());
+
         log.debug("HelloWorldController:updateUserDetails: Invoking helloWorldService.updateUserDetails with : {}",
                 userDetailsDTO);
         this.helloWorldService.updateUserDetails(userDetailsDTO);
-        log.debug("HelloWorldController:updateUserDetails: Executed successfully");
+
+        log.info("HelloWorldController:updateUserDetails: User details saved successfully");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping(value = "/{userName}")
     public Response getBirthdayMessage(@PathVariable String userName) {
-        log.info("HelloWorldController:updateUserDetails:Init...");
+        log.info("HelloWorldController:updateUserDetails: validating the request...");
         validateUserName(userName);
         log.debug("HelloWorldController:updateUserDetails: Invoking helloWorldService.getBirthMessage with : {}",
                 userName);
