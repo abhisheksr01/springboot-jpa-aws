@@ -289,12 +289,6 @@ workflows:
           name: Snyk App Scan
           requires:
             - Build
-      - snyk/scan-iac:
-          <<: *main_branch
-          <<: *credential_context
-          name: Snyk IAC Scan
-          requires:
-            - Build
       - test:
           name: Unit & E2E Tests
           requires:
@@ -332,7 +326,6 @@ workflows:
             - Jacoco Code Coverage
 #            - Checkstyle
             - Snyk App Scan
-            - Snyk IAC Scan
             - Mutation Tests
             - Dependency Vulnerability Checks
       - hold:
