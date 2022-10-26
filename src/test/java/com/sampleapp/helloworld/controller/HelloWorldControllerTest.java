@@ -1,9 +1,12 @@
 package com.sampleapp.helloworld.controller;
 
 import com.sampleapp.helloworld.service.HelloWorldService;
+import com.sampleapp.helloworld.service.UserDetailsVO;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -19,7 +22,7 @@ class HelloWorldControllerTest {
 
     private HelloWorldController helloWorldController;
     private HelloWorldService mockHelloWorldService;
-    private UserDetails userDetails;
+    private UserDetailsDTO userDetails;
     private LocalDate currentLocalDate = LocalDate.now(ZoneId.of("UTC"));
     private LocalDate oneDayOldLocalDate = currentLocalDate.minusDays(1);
 
@@ -28,7 +31,7 @@ class HelloWorldControllerTest {
     void setUp() {
         mockHelloWorldService = mock(HelloWorldService.class);
         helloWorldController = new HelloWorldController(mockHelloWorldService);
-        userDetails = new UserDetails();
+        userDetails = new UserDetailsDTO();
     }
 
     @Test
@@ -41,13 +44,26 @@ class HelloWorldControllerTest {
     }
 
     @Test
-    void updateUserDetails_shouldThrowBadRequestException_whenNonAlphabeticUserNameIsPassed() {
+    void updateUserDetails_shouldTrimUserName() {
+        UserDetailsVO expectedUserDetailsDTODTO = new UserDetailsVO("AbhisHek", oneDayOldLocalDate);
+        userDetails.setDateOfBirth(oneDayOldLocalDate);
+
+        helloWorldController.updateUserDetails(" AbhisHek", userDetails);
+
+        verify(mockHelloWorldService, times(1)).updateUserDetails(expectedUserDetailsDTODTO);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            " 12345abhishek", "@bhishek", "1234", "select * from table"
+    })
+    void updateUserDetails_shouldThrowBadRequestException_whenNonAlphabeticUserNameIsPassed(String actualUserName) {
         String expectedErrorMessage = "400 UserName must contain only letters";
         String actualErrorMessage = null;
         userDetails.setDateOfBirth(oneDayOldLocalDate);
 
         try {
-            helloWorldController.updateUserDetails("12345abhishek", userDetails);
+            helloWorldController.updateUserDetails(actualUserName, userDetails);
         } catch (HttpClientErrorException exception) {
             actualErrorMessage = exception.getMessage();
         }
@@ -87,21 +103,23 @@ class HelloWorldControllerTest {
 
     @Test
     void updateUserDetails_shouldInvokeService_whenValidInputDataIsPassed() {
-        UserDetailsDTO userDetailsDTO = new UserDetailsDTO("abhishek", oneDayOldLocalDate);
+        UserDetailsVO userDetailsVO = new UserDetailsVO("aBhishek", oneDayOldLocalDate);
         userDetails.setDateOfBirth(oneDayOldLocalDate);
 
-        helloWorldController.updateUserDetails("abhishek", userDetails);
+        helloWorldController.updateUserDetails("aBhishek", userDetails);
 
-        verify(mockHelloWorldService, times(1)).updateUserDetails(userDetailsDTO);
+        verify(mockHelloWorldService, times(1)).updateUserDetails(userDetailsVO);
     }
 
-    @Test
-    void getBirthdayMessage_shouldReturnBirthDayMessage() {
-        Response expectedResponse = new Response("Hello,abhishek! Happy Birthday");
-        when(mockHelloWorldService.getBirthdayMessage("abhishek")).thenReturn(expectedResponse);
+    @ParameterizedTest
+    @ValueSource(strings = {" Abhishek", " Abhishek "})
+    void getBirthdayMessage_shouldReturnBirthDayMessage(String actualUserName) {
+        String expectedMessage = "Hello,Abhishek! Happy Birthday";
+        ResponseDTO expectedResponse = new ResponseDTO(expectedMessage);
+        when(mockHelloWorldService.getBirthdayMessage("Abhishek")).thenReturn(expectedResponse);
 
-        Response actualResponse = helloWorldController.getBirthdayMessage("abhishek");
+        ResponseEntity<ResponseDTO> actualResponse = helloWorldController.getBirthdayMessage(actualUserName);
 
-        assertEquals("Hello,abhishek! Happy Birthday", actualResponse.getMessage());
+        assertEquals(expectedMessage, actualResponse.getBody().getMessage());
     }
 }

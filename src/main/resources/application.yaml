@@ -31,3 +31,7 @@ logging:
     com:
       sampleapp:
         helloworld: INFO
+
+config:
+  authUser: abhishek
+  authPassword: '{noop}rajput'

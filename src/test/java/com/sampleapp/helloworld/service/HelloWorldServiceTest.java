@@ -1,9 +1,8 @@
 package com.sampleapp.helloworld.service;
 
-import com.sampleapp.helloworld.controller.Response;
-import com.sampleapp.helloworld.controller.UserDetailsDTO;
+import com.sampleapp.helloworld.controller.ResponseDTO;
 import com.sampleapp.helloworld.repository.HelloWorldRepository;
-import com.sampleapp.helloworld.repository.dao.User;
+import com.sampleapp.helloworld.repository.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,22 +30,22 @@ class HelloWorldServiceTest {
     @Test
     void updateUserDetailsInDB_shouldInvokeRepositorySaveMethodOnce_whenUserExist() {
         String expectedUserName = "expectedUserName";
-        UserDetailsDTO userDetailsDTO = new UserDetailsDTO(expectedUserName, oneDayOldLocalDate);
+        UserDetailsVO userDetailsVO = new UserDetailsVO(expectedUserName, oneDayOldLocalDate);
         User expectedUser = new User(expectedUserName, oneDayOldLocalDate);
         User mockExistingUser = new User(expectedUserName, oneDayOldLocalDate);
         when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockExistingUser);
 
-        helloWorldService.updateUserDetails(userDetailsDTO);
+        helloWorldService.updateUserDetails(userDetailsVO);
 
         verify(mockHelloWorldRepository, times(1)).save(expectedUser);
     }
 
     @Test
     void updateUserDetailsInDB_shouldInvokeRepositorySaveMethodOnce_whenUserDoNotExist() {
-        UserDetailsDTO userDetailsDTO = new UserDetailsDTO("abhishek", oneDayOldLocalDate);
+        UserDetailsVO userDetailsVO = new UserDetailsVO("abhishek", oneDayOldLocalDate);
         User expectedUser = new User("abhishek", oneDayOldLocalDate);
 
-        helloWorldService.updateUserDetails(userDetailsDTO);
+        helloWorldService.updateUserDetails(userDetailsVO);
 
         verify(mockHelloWorldRepository, times(1)).save(expectedUser);
     }
@@ -75,7 +74,7 @@ class HelloWorldServiceTest {
         User mockUser = new User(expectedUserName, oneYearOldDate);
         when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockUser);
 
-        Response actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
+        ResponseDTO actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
 
         assertEquals(expectedMessage, actualResponse.getMessage());
     }
@@ -89,7 +88,7 @@ class HelloWorldServiceTest {
         User mockUser = new User(expectedUserName, dateOfBirth);
         when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockUser);
 
-        Response actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
+        ResponseDTO actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
 
         assertEquals(expectedMessage, actualResponse.getMessage());
     }
@@ -106,7 +105,7 @@ class HelloWorldServiceTest {
         User mockUser = new User(expectedUserName, dateOfBirth);
         when(mockHelloWorldRepository.findByNameIgnoreCase(expectedUserName)).thenReturn(mockUser);
 
-        Response actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
+        ResponseDTO actualResponse = helloWorldService.getBirthdayMessage(expectedUserName);
 
         assertEquals(expectedMessage, actualResponse.getMessage());
     }
