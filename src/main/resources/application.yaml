@@ -30,7 +30,32 @@ logging:
         web: ERROR
     com:
       sampleapp:
-        helloworld: INFO
+        helloworld: DEBUG
+
+config:
+  authUser: abhishek
+  authPassword: '{noop}rajput'
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: none
+      show: false
+  datasource:
+    driver-class-name: 'org.postgresql.Driver'
+    url: 'jdbc:postgresql://localhost:5432/postgres'
+    username: postgres
+    password: secret
+
+logging:
+    com:
+      sampleapp:
+        helloworld: Info
 
 config:
   authUser: abhishek

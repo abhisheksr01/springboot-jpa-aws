@@ -13,3 +13,11 @@ The application exposed 2 endpoints as below:
 ```shell
 1
 ```
+
+```shell
+export spring_profiles_active=prod
+```
+
+```shell
+./gradlew bootRun
+```
