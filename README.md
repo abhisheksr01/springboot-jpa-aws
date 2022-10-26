@@ -4,10 +4,13 @@
 
 ---
 
-- [Introduction](##introduction)
-- [Prerequisites](##prerequisites)
-- [Architecture](##architecture)
-- [Installation and Getting Started](##installation-and-Getting-Started)
+- [Introduction](#introduction)
+- [Architecture](#architecture)
+    - [Microservice Structure](#microservice-structure)
+    - [Continuous Integration, Delivery and Deployment](#continuous-integration-delivery-and-deployment)
+    - [AWS System Architecture](#aws-system-architecture)
+- [Prerequisites](#prerequisites)
+- [Installation and Getting Started](#installation-and-Getting-Started)
 - [Development Practice](##development-practice)
 
 ## Introduction
@@ -21,32 +24,28 @@ The application exposes 2 endpoints as below:
 
 1. PUT - `/hello/<username> { “dateOfBirth”: “YYYY-MM-DD” }`
 
-   Saves/updates the given user’s name and date of birth in the database.
+   Saves/updates the given user’s name and date of birth in the database and returns 204 status code.
 
 2. GET - `/hello/<username>`
 
-   Returns hello birthday message for the given user.
+   Returns hello birthday message for the given user and status code 200.
 
    Response Examples:
    A. If username’s birthday is in N days:
     ```json
-      { “message”: “Hello, <username>! Your birthday is in N day(s)”}
+      {
+        "message": "Hello, <username>! Your birthday is in N day(s)"
+      }
     ```
 
    B. If username’s birthday is today:
     ```json
-      { “message”: “Hello, <username>! Happy birthday!” }
+      {
+         "message": "Hello, <username>! Happy birthday!"
+      }
     ```
 
-In the below sections I will try to explain each integration we have made and how to use.
-
-## Prerequisites
-
-- You must have [Java](https://www.oracle.com/technetwork/java/javaee/documentation/ee8-install-guide-3894351.html)
-  installed (min version 8 - the app is locally tested on JDK 8).
-- Docker Desktop Installed and Running
-- Free CircleCI account (OPTIONAL - unless you would like to see CICD in action)
-- AWS CLI & EKS Cluster (OPTIONAL - unless you would like to deploy application to kubernetes)
+In the following sections we will see the architecture, how to test and use this application.
 
 ## Architecture
 
@@ -66,8 +65,8 @@ The three different takes the responsibilities as below:
   controller layer. This layer may further call a Connector or Repository/DAO layer to get the Data to process and act
   accordingly.
 
-- Repository: The only responsibility of this layer is to fetch amd update the data which is required by the Service layer to
-  perform the business logic to serve the request.<br/>
+- Repository: The only responsibility of this layer is to fetch amd update the data which is required by the Service
+  layer to perform the business logic to serve the request.<br/>
 
 This provides us clear separation of implementation, single responsibility, high readability and extensibility.
 
@@ -77,17 +76,20 @@ For example if we want to migrate from JPA to another framework the impact will 
 
 ### Continuous Integration, Delivery and Deployment
 
-**Continuous Integration**: It's a software development practise where members of a team integrate their work frequently, usually each person integrates at least daily - leading to multiple integrations per day.<br/>
+**Continuous Integration**: It's a software development practise where members of a team integrate their work
+frequently, usually each person integrates at least daily - leading to multiple integrations per day.<br/>
 Each integration is verified by an automated build (including test) to detect integration errors as quickly as possible.
 
 Continuous Integration is a key step to digital transformation.
 
-**Continuous Delivery**: It's software engineering approach in which teams produce software in short cycles, ensuring that the software can be reliably released at any time and, when releasing the software, doing so **manually**.
+**Continuous Delivery**: It's software engineering approach in which teams produce software in short cycles, ensuring
+that the software can be reliably released at any time and, when releasing the software, doing so **manually**.
 
-**Continuous Deployment**: It means that every change goes through the pipeline and **automatically** gets put into production, resulting in many production deployments every day.<br/>
+**Continuous Deployment**: It means that every change goes through the pipeline and **automatically** gets put into
+production, resulting in many production deployments every day.<br/>
 To do Continuous Deployment you must be doing Continuous Delivery.
 
-Pictorial representation of the above two approaches:
+Pictorial representation of the above two CD approaches:
 ![](doc-resources/images/continuous-delivery-deployment.png)
 
 Reference :
@@ -96,53 +98,93 @@ Reference :
 - https://martinfowler.com/bliki/ContinuousDelivery.html
 - https://dzone.com/articles/continuous-delivery-vs-continuous-deployment-an-ov
 
-Now let us look at the key building blocks for achieving CI/CD.
+> Note: 
+> In a real world scenario we will have at least development, preproduction/qa and production environments and the changes are well tested before progressing to the stage/job.
+> For simplicity and ease of understanding we are only deploying to a single environment.
+
+
+1. We are using [CircleCI](https://circleci.com/) to achieve the principles of CICD and [config file](.circleci/config.yml) is stored in `.circleci/config.yml`.
+
+    [Click here](https://circleci.com/docs/getting-started/?section=getting-started&utm_source=google&utm_medium=sem&utm_campaign=sem-google-dg--emea-en-dsa-maxConv-auth-nb&utm_term=g_-_c__dsa_&utm_content=&gclid=Cj0KCQjwteOaBhDuARIsADBqRei3HV1lRtcmhlgkF5rp8UTiYoTg18oKmDv13m5I_HKUSnhVpj1tNnIaAiJhEALw_wcB) and follow the instructions to setup the pipeline.
+
+2. Once pipeline is configured and developer pushes his changes to the GitHub repository, GH will send an event to trigger the pipeline.
 
 ![](doc-resources/images/circleci-cicd.jpg)
 
+3. The pipeline can be virtually split into below sections:
+
+- <b>Build:</b> Pipeline pulls the latest code. The job installs all the dependencies, build and compile the code to output an executable Jar. We cache the workspace to optimise the pipeline execution.
+
+- <b>Quality & Security Gates:</b> These jobs are executed in parallel to speed up the CICD process and reduce feedback time. We execute our automated tests, scan the code and dependencies for vulnerabilities and execute Mutation tests.
+
+- <b>Docker Lint Build Push:</b> Once all the quality and security jobs are executed successfully this job is triggered. The responsibility of this jon is to lint the Dockerfile, build a docker image, scan the docker image for vulnerabilities and if no vulnerabilities are identified push to Docker hub.
+
+- <b>Approval Job:</b> This job acts as a manual gateway to ensure what changes get deployed to the AWS EKS Cluster.
+
+- <b>Deploy app to k8s</b>: This job uses the [kubernetes helm chart files](./kubernetes/helm-chart) to use the docker image push in the previous job and deploy it to AWS EKS Cluster.
+
+- <b>Post Deployment Jobs</b>: Once the application is deployed successfully we execute Acceptance test to ensure the application works as expected, Penetration test, load test and health check (is optional as acceptance test covers this aspect)
+
+<b>Ensuring High Availability No Downtime<b>
+
+- To ensure high availability and no downtime we are spinning 3 replicas of the pods.
+- This can be further improvised by provisioning the pods in different k8s worker nodes(virtual machines)
+- Provisioning the pods in 2 different cluster and load balancing the traffic using an external load balancer (Idle for production environment).
+
+<b>All the credentials are securely stored in the CircleCI and pulled appropriately in the pipeline config</b>
+
 ### AWS System Architecture
+
+In this section we will discuss how the request flows when a customer accesses our API using a URL as can be seen in the below picture
+
+For the sake of simplicity the diagram has abstracted low level internal working of kubernetes.
+
 ![](doc-resources/images/system-diagram.png)
 
+1. Client makes a request: The client can be anything from a app, browser or another microservice.
+2. Public Load Balancer: The public application load balancer intercepts the request and redirect it to the AWS EKS Cluster.
+3. Ingress Load Balancer: This load balancer redirects the request to one of the pods where our application container is running. As our application is stateless hence the subsequent request can be served by any other pod in th pool.
+4. Application Pod: The request is first validated and then processed. In our case the client has requested for some information hence the application inside the pod will make a call to the postgres DB to retrieve the user details.
+   After retrieving the data from DB the response is sent with appropriate information.
+5. Postgres DB: Here the data is persisted.
 
+Provisioning of the infrastructure is typically managed by a separate team (Platform or Site Reliability Engineering team).
+They use Infrastructure as code such as Terraform, Ansible, AWS CDK etc for the same.
 
-[//]: # (### Installation and Getting Started)
+## Application
 
-[//]: # ()
-[//]: # (Let us get started by Cloning or [Downloading]&#40;https://github.com/abhisheksr01/springboot-jpa/archive/refs/heads/main.zip&#41; repository in your local workstation.)
+In this section we will discuss how to use test, use the application and development practices that we have followed.
 
-[//]: # ()
-[//]: # (```shell)
+### Prerequisites
 
-[//]: # (git clone https://github.com/abhisheksr01/springboot-jpa.git)
+- You must have [Java](https://www.oracle.com/technetwork/java/javaee/documentation/ee8-install-guide-3894351.html)
+  installed (min version 8 - the app is locally tested on JDK 8).
+- Docker Desktop Installed and Running
+- Free CircleCI account (OPTIONAL - unless you would like to see CICD in action)
+- AWS CLI & EKS Cluster (OPTIONAL - unless you would like to deploy application to kubernetes)
 
-[//]: # (```)
+### Installation and Getting Started
 
-[//]: # ()
-[//]: # (Once cloned/downloaded import the project in your favourite IDE &#40;IntelliJ, Eclipse etc&#41;.)
+Let us get started by Cloning or [Downloading](https://github.com/abhisheksr01/springboot-jpa/archive/refs/heads/main.zip) repository in your local workstation.
+```shell
+git clone https://github.com/abhisheksr01/springboot-jpa.git
+```
 
-[//]: # ()
-[//]: # (We are using [Gradle Wrapper]&#40;https://docs.gradle.org/current/userguide/gradle_wrapper.html&#41; for dependency management)
+Once cloned/downloaded import the project in your favourite IDE (IntelliJ, Eclipse etc).
 
-[//]: # (so that you do not need to explicitly configure Gradle.)
+We are using [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) for dependency management  so that you do not need to explicitly configure Gradle.
 
-[//]: # ()
-[//]: # (From the terminal/command prompt execute below command to download dependencies specified in the [build.gradle]&#40;build.gradle&#41; and build the java code without running tests.)
+From the terminal/command prompt execute below command to download dependencies specified in the [build.gradle](build.gradle) and build the java code without running tests.
 
-[//]: # ()
-[//]: # (```bash)
+```shell
+./gradlew clean build -x test
+```
+You can visualise the codebase with the help of below diagram.
 
-[//]: # (./gradlew clean build -x test)
+![Visualization of the codebase](./diagram.svg)
 
-[//]: # (```)
+<a propertyName = "MSStructure"></a>
 
-[//]: # ()
-[//]: # (You can visualise the codebase with the help of below diagram.)
-
-[//]: # ()
-[//]: # (![Visualization of the codebase]&#40;./diagram.svg&#41;)
-
-[//]: # ()
-[//]: # (<a propertyName = "MSStructure"></a>)
 ### Development Practice
 
 At the core of the Cloud Native Practices in Software Engineering lies the Behavior Driven Development(BDD) and
