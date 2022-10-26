@@ -56,6 +56,11 @@ aliases:
       branches:
         only:
           - main
+  - &dependabot_branch
+    filters:
+      branches:
+        only:
+          - /dependabot.*/
   - &persist_to_workspace
     persist_to_workspace:
       root: .
@@ -355,6 +360,19 @@ workflows:
           name: Load Performance Test
           requires:
             - Deploy app to K8S
+  dependabot-prs:
+    jobs:
+      - snyk-scan:
+          <<: *dependabot_branch
+          <<: *credential_context
+          name: Snyk App Scan
+      - test:
+          <<: *dependabot_branch
+          name: Unit & E2E Tests
+      - check_dependency_vulnerability:
+          <<: *dependabot_branch
+          name: Dependency Vulnerability Checks
+          timeout: 25m
   scheduled-vulnerability-check:
     triggers:
       - schedule:
