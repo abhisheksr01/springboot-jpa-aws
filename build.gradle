@@ -59,7 +59,7 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     //Swagger
-//	implementation "io.springfox:springfox-boot-starter:${swaggerVersion}"
+	implementation "io.springfox:springfox-boot-starter:${swaggerVersion}"
     //pitest
     implementation "org.pitest:pitest-junit5-plugin:${pitest}"
 
