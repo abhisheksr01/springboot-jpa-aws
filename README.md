@@ -2,16 +2,17 @@
 
 ## Table of Content
 
----
-
 - [Introduction](#introduction)
 - [Architecture](#architecture)
     - [Microservice Structure](#microservice-structure)
     - [Continuous Integration, Delivery and Deployment](#continuous-integration-delivery-and-deployment)
     - [AWS System Architecture](#aws-system-architecture)
-- [Prerequisites](#prerequisites)
-- [Installation and Getting Started](#installation-and-Getting-Started)
-- [Development Practice](##development-practice)
+- [Application](#application)
+    - [Prerequisites](#prerequisites)
+    - [Installation and Getting Started](#installation-and-getting-started)
+    - [Development Practice](#development-practice)
+    - [Automated Tests](#automated-tests)
+    - [Manual Testing or Starting App locally](#manual-testing-or-starting-app-locally)
 
 ## Introduction
 
@@ -197,25 +198,97 @@ A feature is not considered as developed until all the Unit Tests (TDD) and feat
 
 ![](doc-resources/images/bdd-tdd-cycle.png)
 
-Example:
+
+### Automated Tests
+
+We are using Junit5 and Gherkins Cucumber for writing automated Unit and Cucumber based E2E tests respectively.
+
+We are using [TestContainers](https://www.testcontainers.org/) for simulating the Database while executing automated tests.
+
+Ensure you have docker running as testcontainers uses it for DB simulation.
+
+[Click here to open helloworld.feature](src/test/resources/feature/helloworld.feature) file to see what E2E tests we are executing.
+
+Execute below command to run all the tests (Unit and Cucumber):
+```shell
+./gradlew test
+```
+Once tests are executed you can see reports under `springboot-jpa/build/reports` directory.
+
+We can individually execute `e2e` test by executing below command:
+```shell
+./gradlew test -Pe2e=true
+```
+Similarly execute below command to run only unit tests:
+```shell
+./gradlew test -Pexcludee2e=true
+```
+
+### Manual Testing or Starting App locally
+
+> Note: All the endpoints are using Basic Authorization mechanism to demonstrate how we can secure our API Endpoints.</br>
+> In a real world scenario we preferably use Oauth 2.0 based authentication and authorization mechanism.
+
+We will use docker compose to locally start the application and test the application functionality.
+
+From the root of this directory to start the application and postgres DB locally.
+
+```shell
+docker compose up -d
+```
+The above command will read the instructions specified in the [docker-compose.yml](docker-compose.yml) file in the root of this project.
+
+First it will pull the postgres docker image and start the database container then build a local docker image from our codebase and then start the app docker container.
+
+#### Test Using Postman
+
+Open [Postman](https://www.postman.com/) and import the Postman collection stored in the [./springboot-jpa/scripts/springbootjpa-helloworld.postman_collection.json](./scripts/springbootjpa-helloworld.postman_collection.json) file.
+
+[Click here] to learn how to import the Collection Data.
+
+1. Adding/Updating a user
+
+Once the Collection has been successfully imported Open the `Add/Update User` request and click Send Button.
+
+You should receive `204` success status as shown below.
+![](./doc-resources/images/postman-put-request.png)
+
+2. Get Birthday Message
+
+Open the `Get Birthday Message` request and click Send.
+
+You should receive `200` success status and message in body as below:
+![](./doc-resources/images/postman-get-request.png)
+
+#### Test Using Curl
+
+Alternatively we can use curl commands to invoke the API's and test them locally.
+
+1. Adding/Updating a user
+
+Open terminal or command prompt and execute below command:
+
+```shell
+curl --location --request PUT 'http://localhost:8080/hello/roger' \
+--header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105' \
+--data-raw '{ "dateOfBirth": "1980-10-10" }'
+```
+
+2. Get Birthday Message
 
 ```shell
 curl --location --request GET 'http://localhost:8080/hello/abhishek' \
 --header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
---header 'Cookie: JSESSIONID=B2D8EAF5217287C2AD889127852E8DA0'
-
+--header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105'
 ```
 
-**Note: Texts highlighted in light blue colour are clickable hyperlinks for additional references.**
+![](./doc-resources/images/curl-put-get-request.png)
+Once executed successfully you should see a response similar to below screenshot.
+
+Once testing is done let us remove the containers by executing below command:
 
 ```shell
-export spring_profiles_active=prod
-```
-
-```shell
-./gradlew bootRun
-```
-
-```shell
-docker run --name postgres -e POSTGRES_PASSWORD=secret -d -p 5432:5432 postgres:15.0-alpine
+docker compose down
 ```
