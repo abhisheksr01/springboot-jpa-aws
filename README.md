@@ -21,3 +21,7 @@ export spring_profiles_active=prod
 ```shell
 ./gradlew bootRun
 ```
+
+```shell
+docker run --name postgres -e POSTGRES_PASSWORD=secret -d -p 5432:5432 postgres:15.0-alpine
+```
