@@ -1,10 +1,8 @@
 package com.sampleapp.helloworld.mapper;
 
-import com.sampleapp.helloworld.controller.UserDetailsDTO;
-import org.mapstruct.AfterMapping;
+import com.sampleapp.helloworld.service.UserDetailsVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDate;
@@ -17,10 +15,5 @@ public interface UserDetailsToUserDetailsDTOMapper {
 
     @Mapping(source = "userName", target = "userName")
     @Mapping(source = "dateOfBirth", target = "dateOfBirth")
-    UserDetailsDTO mapUserInputsToUserDetailsDTO(String userName, LocalDate dateOfBirth);
-
-    @AfterMapping
-    default void convertNameLowerCaseAndTrim(@MappingTarget UserDetailsDTO userDetailsDTO) {
-        userDetailsDTO.setUserName(userDetailsDTO.getUserName().toLowerCase().trim());
-    }
+    UserDetailsVO mapUserInputsToUserDetailsDTO(String userName, LocalDate dateOfBirth);
 }

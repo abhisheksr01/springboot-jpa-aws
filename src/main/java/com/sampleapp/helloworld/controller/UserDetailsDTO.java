@@ -1,13 +1,14 @@
 package com.sampleapp.helloworld.controller;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
-@AllArgsConstructor
 public class UserDetailsDTO {
-    private String userName;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @NotNull
     private LocalDate dateOfBirth;
 }

@@ -1,4 +1,4 @@
-package com.sampleapp.helloworld.repository.dao;
+package com.sampleapp.helloworld.repository;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

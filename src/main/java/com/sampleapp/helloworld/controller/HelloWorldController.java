@@ -1,6 +1,7 @@
 package com.sampleapp.helloworld.controller;
 
 import com.sampleapp.helloworld.service.HelloWorldService;
+import com.sampleapp.helloworld.service.UserDetailsVO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 import static com.sampleapp.helloworld.mapper.UserDetailsToUserDetailsDTOMapper.MAPPER;
-import static java.util.Objects.isNull;
 
 @Slf4j
 @RestController
@@ -27,43 +27,50 @@ public class HelloWorldController {
 
     @SneakyThrows
     @PutMapping(value = "/{userName}")
-    public ResponseEntity updateUserDetails(@PathVariable String userName, @RequestBody @Valid UserDetails userDetails) {
+    public ResponseEntity updateUserDetails(@PathVariable String userName, @RequestBody @Valid UserDetailsDTO userDetails) {
         log.info("HelloWorldController:updateUserDetails: validating the request...");
+        userName = userName.trim();
         validateUserName(userName);
         validateDateOfBirth(userDetails);
 
-        UserDetailsDTO userDetailsDTO = MAPPER.mapUserInputsToUserDetailsDTO(userName, userDetails.getDateOfBirth());
+        UserDetailsVO userDetailsVO = MAPPER.mapUserInputsToUserDetailsDTO(userName, userDetails.getDateOfBirth());
 
         log.debug("HelloWorldController:updateUserDetails: Invoking helloWorldService.updateUserDetails with : {}",
-                userDetailsDTO);
-        this.helloWorldService.updateUserDetails(userDetailsDTO);
+                userDetailsVO);
+        this.helloWorldService.updateUserDetails(userDetailsVO);
 
         log.info("HelloWorldController:updateUserDetails: User details saved successfully");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping(value = "/{userName}")
-    public Response getBirthdayMessage(@PathVariable String userName) {
+    public ResponseEntity<ResponseDTO> getBirthdayMessage(@PathVariable String userName) {
         log.info("HelloWorldController:updateUserDetails: validating the request...");
+        userName = userName.trim();
         validateUserName(userName);
         log.debug("HelloWorldController:updateUserDetails: Invoking helloWorldService.getBirthMessage with : {}",
                 userName);
-        return this.helloWorldService.getBirthdayMessage(userName.toLowerCase());
+        return new ResponseEntity(this.helloWorldService.getBirthdayMessage(userName), HttpStatus.OK);
     }
 
-    private void validateDateOfBirth(UserDetails userDetails) {
+    private void validateDateOfBirth(UserDetailsDTO userDetails) {
         LocalDate dateOfBirth = userDetails.getDateOfBirth();
         LocalDate currentDate = LocalDate.now(ZoneId.of("UTC"));
-        if (isNull(dateOfBirth) || !dateOfBirth.isBefore(currentDate)) {
+        if (!dateOfBirth.isBefore(currentDate)) {
+            log.debug("HelloWorldController:updateUserDetails: validation failed dateOfBirth: {} is not before currentDate: {}",
+                    dateOfBirth, currentDate);
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
                     "Date of birth must be a date before the today date");
         }
     }
 
     private void validateUserName(String userName) {
-        if (!userName.matches("[a-zA-Z]+")) {
+        if (!userName.matches("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$")) {
+            log.debug("HelloWorldController:updateUserDetails: validation failed userName: {} contains non letter characters",
+                    userName);
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
                     "UserName must contain only letters");
         }
     }
+
 }

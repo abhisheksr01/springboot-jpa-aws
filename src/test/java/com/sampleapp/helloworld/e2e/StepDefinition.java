@@ -1,6 +1,6 @@
 package com.sampleapp.helloworld.e2e;
 
-import com.sampleapp.helloworld.controller.Response;
+import com.sampleapp.helloworld.controller.ResponseDTO;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -59,14 +59,14 @@ public class StepDefinition extends SpringIntegration {
 
     @When("The user makes a GET request")
     public void the_user_makes_a_get_request() {
-        this.responseEntity = getRestTemplate().getForEntity(getDefaultURL() + "hello/" + this.userName, Response.class);
+        this.responseEntity = getRestTemplate().getForEntity(getDefaultURL() + "hello/" + this.userName, ResponseDTO.class);
     }
 
     @Then("The API should return a status code {int} and message {string}")
     public void the_api_should_return_a_status_code_and_message(Integer expectedStatusCode, String expectedMessage) {
-        Response response = (Response) this.responseEntity.getBody();
+        ResponseDTO response = (ResponseDTO) this.responseEntity.getBody();
         assertEquals(expectedStatusCode, this.responseEntity.getStatusCodeValue());
-        assertEquals(expectedMessage, ((Response) this.responseEntity.getBody()).getMessage());
+        assertEquals(expectedMessage, ((ResponseDTO) this.responseEntity.getBody()).getMessage());
 
     }
 
