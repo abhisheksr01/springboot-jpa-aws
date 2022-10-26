@@ -19,6 +19,7 @@ public class StepDefinition extends SpringIntegration {
     private ResponseEntity responseEntity;
     private String userDetails;
     private String userName;
+    private Exception exception;
 
     @Given("User provides date of birth")
     public void user_provides_date_of_birth(String requestString) throws JSONException {
@@ -32,8 +33,12 @@ public class StepDefinition extends SpringIntegration {
         headers.add("Accept", "*/*");
 
         HttpEntity<String> requestEntity = new HttpEntity<String>(this.userDetails, headers);
-        this.responseEntity = getRestTemplate().exchange(getDefaultURL() + "hello/" + userName, HttpMethod.PUT,
-                requestEntity, String.class);
+        try {
+            this.responseEntity = getRestTemplate().exchange(getDefaultURL() + "hello/" + userName, HttpMethod.PUT,
+                    requestEntity, String.class);
+        } catch (Exception exception) {
+            this.exception = exception;
+        }
     }
 
     @Then("The API should return a response with status code {int} and phrase {string}")
@@ -71,5 +76,15 @@ public class StepDefinition extends SpringIntegration {
         String oneYearOldDate = LocalDate.now(ZoneId.of("UTC")).minusYears(1).plusDays(birthDayInDays).toString();
         this.userDetails = "{ \"dateOfBirth\": \"" + oneYearOldDate + "\" }";
         the_user_makes_a_put_request_with_name_to_save_or_update_the_details(userName);
+    }
+
+    @Given("User did not provide date of birth")
+    public void user_did_not_provide_date_of_birth(String requestString) {
+        this.userDetails = requestString;
+    }
+
+    @Then("The API should return a response with status code {int} and body")
+    public void the_api_should_return_a_response_with_status_code_and_body(Integer expectedStatusCode, String expectedError) {
+        assertEquals(expectedStatusCode + " : " + expectedError, this.exception.getMessage());
     }
 }

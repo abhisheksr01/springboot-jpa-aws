@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
@@ -26,7 +27,7 @@ public class HelloWorldController {
 
     @SneakyThrows
     @PutMapping(value = "/{userName}")
-    public ResponseEntity updateUserDetails(@PathVariable String userName, @RequestBody UserDetails userDetails) {
+    public ResponseEntity updateUserDetails(@PathVariable String userName, @RequestBody @Valid UserDetails userDetails) {
         log.info("HelloWorldController:updateUserDetails: validating the request...");
         validateUserName(userName);
         validateDateOfBirth(userDetails);

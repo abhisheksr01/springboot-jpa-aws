@@ -15,7 +15,7 @@ spring:
       hibernate:
         dialect: 'org.hibernate.dialect.PostgreSQLDialect'
     hibernate:
-      ddl-auto: create-only
+      ddl-auto: update
       show: false
   datasource:
     driver-class-name: 'org.postgresql.Driver'

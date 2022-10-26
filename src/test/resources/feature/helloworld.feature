@@ -20,3 +20,14 @@ Feature: Design and code a simple "Hello World" application that exposes the fol
     When The user makes a GET request
     # The N in the number of days will be replaced in the step definition dynamically
     Then The API should return a status code 200 and message "Hello, rajput! Your birthday is in 20 day(s)"
+
+  Scenario: The given user do not provide dateOfBirth in the request
+    Given User did not provide date of birth
+    """
+      { "jobDate": "2022-10-22" }
+    """
+    When The user makes a PUT request with name "abhishek" to save or update the details
+    Then The API should return a response with status code 400 and body
+    """
+    "{"dateOfBirth":"must not be null"}"
+    """
