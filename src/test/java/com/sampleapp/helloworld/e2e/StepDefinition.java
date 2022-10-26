@@ -14,6 +14,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpHeaders.ACCEPT;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.MediaType.ALL_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class StepDefinition extends SpringIntegration {
     private ResponseEntity responseEntity;
@@ -29,8 +33,8 @@ public class StepDefinition extends SpringIntegration {
     @When("The user makes a PUT request with name {string} to save or update the details")
     public void the_user_makes_a_put_request_with_name_to_save_or_update_the_details(String userName) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
-        headers.add("Accept", "*/*");
+        headers.add(CONTENT_TYPE, APPLICATION_JSON_VALUE);
+        headers.add(ACCEPT, ALL_VALUE);
 
         HttpEntity<String> requestEntity = new HttpEntity<String>(this.userDetails, headers);
         try {

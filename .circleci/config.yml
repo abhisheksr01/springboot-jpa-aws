@@ -245,6 +245,7 @@ jobs:
           command: |
             RELEASE_NAME="<< parameters.release >>" \
             EKS_NAMESPACE="${EKS_NAMESPACE}" \
+            SPRING_PROFILE_ACTIVE=prod \
             ./scripts/helm-deploy.sh
   health_check:
     executor: alpine
