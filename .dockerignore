@@ -13,5 +13,3 @@ temp?
 *.md
 !README*.md
 README-secret.md
-
-build/
