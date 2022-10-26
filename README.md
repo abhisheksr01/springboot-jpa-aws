@@ -13,6 +13,7 @@
     - [Development Practice](#development-practice)
     - [Automated Tests](#automated-tests)
     - [Manual Testing or Starting App locally](#manual-testing-or-starting-app-locally)
+- [Assumptions and Considerations](#assumptions-and-considerations)
 
 ## Introduction
 
@@ -198,6 +199,15 @@ A feature is not considered as developed until all the Unit Tests (TDD) and feat
 
 ![](doc-resources/images/bdd-tdd-cycle.png)
 
+Additionally, we have used multiple utilities/practices to optimise our development strategy as below:
+
+- Jacoco test code coverage
+- Map Struct
+- Mutation Testing
+- Lombok
+- Dependency Vulnerability Scanning
+- Snyk
+
 
 ### Automated Tests
 
@@ -244,7 +254,7 @@ First it will pull the postgres docker image and start the database container th
 
 Open [Postman](https://www.postman.com/) and import the Postman collection stored in the [./springboot-jpa/scripts/springbootjpa-helloworld.postman_collection.json](./scripts/springbootjpa-helloworld.postman_collection.json) file.
 
-[Click here] to learn how to import the Collection Data.
+[Click here](https://learning.postman.com/docs/getting-started/importing-and-exporting-data/) to learn how to import the Collection Data.
 
 1. Adding/Updating a user
 
@@ -279,16 +289,61 @@ curl --location --request PUT 'http://localhost:8080/hello/roger' \
 2. Get Birthday Message
 
 ```shell
-curl --location --request GET 'http://localhost:8080/hello/abhishek' \
+curl --location --request GET 'http://localhost:8080/hello/roger' \
 --header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
 --header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105'
 ```
 
-![](./doc-resources/images/curl-put-get-request.png)
 Once executed successfully you should see a response similar to below screenshot.
+![](./doc-resources/images/curl-put-get-request.png)
 
+3. When User does not exist
+```shell
+curl --location --request GET 'http://localhost:8080/hello/sam' \
+--header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
+--header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105'
+```
+Expected Error Response:
+```text
+No user found, please check the username
+```
+
+4. When Special characters are passed in username
+```shell
+curl --location --request GET 'http://localhost:8080/hello/@abishek' \
+--header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
+--header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105'
+```
+Expected Error Response:
+```text
+UserName must contain only letters
+```
+
+5. When the dateOfBirth is equal to current date
+```shell
+curl --location --request PUT 'http://localhost:8080/hello/roger' \
+--header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105' \
+--data-raw '{ "dateOfBirth": "2022-10-26" }'
+```
+
+```text
+Date of birth must be a date before the today date
+```
 Once testing is done let us remove the containers by executing below command:
 
+Expected Error Response:
 ```shell
 docker compose down
 ```
+
+## Assumptions and Considerations
+
+1. All the dates are calculated in `UTC` and supporting the respective time zones were kept out of scope as it would have required Zone Ids from client.
+2. The username can contain spaces in between and if a username is provided with trailing spaces we will trim it.
+3. The Basic Auth mechanism is added to demonstrate how we can secure our API's in real world scenario we will prefer OAuth 2.0.
+4. All the credentials (Basic Auth and DB credentials) are replaced in CICD pipeline.</br> Additionally, we have used Spring's Active profile concept to load prod environment specific configuration by setting `SPRING_PROFILE_ACTIVE=prod` environment variable.
+5. The application expects a Postgress Database to be already provisioned before the application deployment and appropriate credentials are shared.
+
+You can refer [another repository by clicking here](https://github.com/abhisheksr01/spring-boot-microservice-best-practices) to learn more about individual tools and mechanism used in this repository.

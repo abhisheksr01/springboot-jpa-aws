@@ -34,11 +34,12 @@ class HelloWorldControllerTest {
         userDetails = new UserDetailsDTO();
     }
 
-    @Test
-    void updateUserDetails_shouldReturn204NoContent() throws ParseException {
+    @ParameterizedTest
+    @ValueSource(strings = {"AbHishek", "A S Rajput", " abhishek"})
+    void updateUserDetails_shouldReturn204NoContent(String userName) throws ParseException {
         userDetails.setDateOfBirth(oneDayOldLocalDate);
 
-        ResponseEntity actualResponse = helloWorldController.updateUserDetails("AbHishek", userDetails);
+        ResponseEntity actualResponse = helloWorldController.updateUserDetails(userName, userDetails);
 
         assertEquals(HttpStatus.NO_CONTENT, actualResponse.getStatusCode());
     }

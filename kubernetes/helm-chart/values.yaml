@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 3
+replicaCount: 1
 
 image:
   repository: abhisheksr01/springbootjpa-helloworld
@@ -10,30 +10,30 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
-imagePullSecrets: [ ]
+imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: "companieshouse"
+fullnameOverride: "springbootjpahelloworld"
 
 serviceAccount:
   # Specifies whether a service account should be created
   create: false
   # Annotations to add to the service account
-  annotations: { }
+  annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-podAnnotations: { }
+podAnnotations: {}
 
-podSecurityContext: { }
+podSecurityContext: {}
 # fsGroup: 2000
 
-securityContext: { }
+securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
-# readOnlyRootFilesystem: true
-# runAsNonRoot: true
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
 # runAsUser: 1000
 
 service:
@@ -48,16 +48,17 @@ ingress:
     nginx.ingress.kubernetes.io/configuration-snippet: 'more_set_headers "Server: api"; more_set_headers "X-Content-Type-Options: nosniff";',
     nginx.ingress.kubernetes.io/rewrite-target: /,
   }
-  # ToDo: Below given below will require a ingress configured in the kubernetes cluster.
-  # ToDo: Replace with a actual value where this app can be resolved, example: helloworld.abhishek.co.uk
+    # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: 'TO_BE_REPLACED'
-  tls: [ ]
+    - host: springbootjpahelloworld.labs.armakuni.co.uk
+#      paths: []
+  tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
 
-resources: { }
+resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -65,8 +66,8 @@ resources: { }
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
-# requests:
-#   cpu: 100m
+  # requests:
+  #   cpu: 100m
 #   memory: 128Mi
 
 autoscaling:
@@ -76,8 +77,8 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-nodeSelector: { }
+nodeSelector: {}
 
-tolerations: [ ]
+tolerations: []
 
-affinity: { }
+affinity: {}
