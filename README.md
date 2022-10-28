@@ -127,7 +127,7 @@ Reference :
 
 - <b>Post Deployment Jobs</b>: Once the application is deployed successfully we execute Acceptance test to ensure the application works as expected, Penetration test, load test and health check (is optional as acceptance test covers this aspect)
 
-<b>Ensuring High Availability No Downtime<b>
+<b>Ensuring High Availability No Downtime</b>
 
 - To ensure high availability and no downtime we are spinning 3 replicas of the pods.
 - This can be further improvised by provisioning the pods in different k8s worker nodes(virtual machines)
