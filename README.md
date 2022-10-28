@@ -241,7 +241,12 @@ Similarly execute below command to run only unit tests:
 
 We will use docker compose to locally start the application and test the application functionality.
 
-From the root of this directory to start the application and postgres DB locally.
+From the root of this directory execute below commands:
+```shell
+./gradlew clean build -x test
+```
+
+To start the application and postgres DB locally.
 
 ```shell
 docker compose up -d
