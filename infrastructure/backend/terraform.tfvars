@@ -1,0 +1,6 @@
+remote_backend_name = "springbootjpainfra"
+s3_versioning       = "Enabled"
+owner               = "abhishek"
+environment_name    = "dev"
+description         = "Backend for springbootjpainfra project"
+acl                 = "private"
