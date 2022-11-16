@@ -7,6 +7,7 @@
     - [Microservice Structure](#microservice-structure)
     - [Continuous Integration, Delivery and Deployment](#continuous-integration-delivery-and-deployment)
     - [AWS System Architecture](#aws-system-architecture)
+- [AWS Infrastructure Provisioning](#aws-infrastructure-provisioning)
 - [Application](#application)
     - [Prerequisites](#prerequisites)
     - [Installation and Getting Started](#installation-and-getting-started)
@@ -153,19 +154,205 @@ For the sake of simplicity the diagram has abstracted low level internal working
 ### AWS Infrastructure Provisioning
 
 Provisioning of the infrastructure is typically managed by a separate team (Platform or Site Reliability Engineering team).
-They use Infrastructure as code such as Terraform, Ansible, AWS CDK etc for the same.
 
-Discuss database setup, installation, schema installation/upgrade. How would that be handled in the infrastructure and application deployment.
+In this section we will discuss database setup, installation, schema installation/upgrade and how would that be handled in the infrastructure and application deployment.
 
-In this repository we are using Terraform for provisioning a Postgres RDS Instance on AWS.
+Prerequisite:
 
-- Terraform Modules
-  https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest
-  Note: Highlight key concepts
+- Terraform Installed `version >= 1.0`
+- AWS CLI and access to create resources in a account
 
-- [Flyway](https://flywaydb.org/)
-  Note: For managing the DB DDL
-  https://dzone.com/articles/build-a-spring-boot-app-with-flyway-and-postgres
+1. Terraform Introduction:
+
+   We are using Terraform for provisioning a Postgres RDS Instance on AWS. The Terraform code is in the [infrastructure](./infrastructure/) directory.
+
+   In our TF codebase we are using Open Source terraform modules as they:
+   - Save Time
+   - Highly reusable
+   - Highly Configurable
+   - Reusable modules encourage best practices
+   - Maintaining modules is hard and time consuming and is managed by the community
+
+   [Click here](https://transcend.io/blog/terraform-modules-open-source/) to learn more about the advantages of using terraform modules.
+
+   Although in certain cases we do not want to rely o Open Source modules but that depends on th respective scenario.
+
+2. Infrastructure Backend setup
+
+   > This is a one time setup and should not be repeated
+   
+   Terraform uses backend for storing the TF  Infrastructure state to know what resources it needs to  provision, change or de provision. In AWS it uses S3 buckets for storing the statefile.
+
+    <details>
+      <summary> Click here to learn more about backend    configuration </summary></br>
+    
+      ### Problem
+      Before we begin to start provisioning autonomous    infrastructure and the platforms through pipelines etc    we have to do some bootstrapping work such as creating a   bucket for storing Terraform backend and creating IAM    roles for allowing cross account access with admin    privileges so that we can assume the role to create    further resources without switching credentials for    different AWS Accounts.
+    
+      This is the chicken and the egg paradox where one has     some dependency on another.
+      ### Aim or Solution
+      Instead of going to the console and manually creating     the bootstrap infrastructure, we will use Terraform to    provision the resources and then store the state to the   remote bucket.
+    
+      The very first thing that will have to do is to create    an S3 backend bucket for storing the state of  the    Terraform execution for this repository.
+    
+      Then create Cross Account IAM role so that we can use it    for further infrastructure provisioning.
+      ### Execution
+    
+      </b>Provisioning backend S3 bucket in Dev Account:</b>
+    
+      1. Comment the `backend "s3" {}` section in the     `infrastructure/backend/provider.tf` file as we     currently do not have an S3 bucket to store the state     file.
+      2. Authenticate AWS CLI with your credentials
+      3. Once done navigate to `infrastructure/backend`     directory and execute below make command to initialize    terraform:
+      ```
+      terraform init
+      ```
+      4. Run make plan to see the changes:
+      ```
+      terraform plan
+      ```
+      5. Once you see the planned changes, run make apply     command and type `yes` when prompted:ake plan to  see     the changes:
+      ```
+      terraform apply
+      ```
+      6. Once terraform changes are applied successfully  uncomment the `backend "s3" {}` section in the `infrastructure/backend/provider.tf` and run below   command so the local Terraform state gets stored in   the S3 bucket.
+    
+      ```
+      terraform init -migrate-state -backend-config=./    backend-config.hcl
+      ```
+      When prompted type `yes` and hit enter.
+    </details></br>
+
+
+  3. DB Provisioning
+     
+     we are using a very popular [terraform-aws-modules/rds/aws](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest) module for provisioning a Postgres DB in AWS Cloud & [VPC](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest) module in which our RDS DB will be provisioned.
+
+     The Terraform code will provision a single instance of DB in `eu-west-2` region and replication in `eu-west-1` for disaster recovery. This replicated DB can be used for READ heavy operations to keep the load on primary DB low.
+
+     All the DB Configuration are managed in the [dev.tfvars](./infrastructure/dev.tfvars) file as below:
+
+     ```
+      aws_rds_db = {
+        name                                  = "springbootjpadb",
+        region                                = "eu-west-2",
+        region2                               = "eu-west-1",
+        engine                                = "postgres"
+        engine_version                        = "14.5",
+        family                                = "postgres14",
+        major_engine_version                  = "14"
+        publicly_accessible                   = false
+        instance_class                        = "db.t4g.large",
+        allocated_storage                     = 20
+        max_allocated_storage                 = 100
+        port                                  = 5432
+        multi_az                              = true
+        maintenance_window                    = "Mon:00:00-Mon:03:00"
+        backup_window                         = "03:00-06:00"
+        enabled_cloudwatch_logs_exports       = ["postgresql", "upgrade"]
+        create_cloudwatch_log_group           = true
+        backup_retention_period               = 1
+        skip_final_snapshot                   = true
+        deletion_protection                   = false
+        performance_insights_enabled          = true
+        performance_insights_retention_period = 7
+        create_monitoring_role                = true
+        monitoring_interval                   = 60
+        monitoring_role_name                  = "springbootjpa-monitoring-role-name"
+        monitoring_role_use_name_prefix       = true
+        monitoring_role_description           = "Description for monitoring  role"
+     ```
+
+     Based on our requirements for the DB we can alter any of the above property.
+
+     Change the directory to `./infrastructure` and execute below command (make sure you have followed the instructions for the backend) to initialize the TF.
+
+     ```
+     terraform init -backend-config=./backend-config.hcl
+     ```
+
+     Execute below command to see what terraform will provision for us:
+     ```
+     terraform plan --var-file=./dev.tfvars
+     ```
+    
+     Execute below command to provision the infrastructure and when prompted enter `yes`:
+     ```
+     terraform apply --var-file=./dev.tfvars
+     ```
+     
+     By default the TF code creates a non publicly accessible RDS Instance which can only be accessed within the VPC. Hence the application should be deployed inside the same VPC.
+
+     In case you wish to access from another VPC then you will have to create vpc peering.
+
+     [Click here to learn more about it.](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html)
+
+     > Public access to RDS instances
+       Sometimes it is handy to have public access to RDS instances (it is not recommended for production) by specifying these arguments:
+       create_database_subnet_group           = true
+       create_database_subnet_route_table     = true
+       create_database_internet_gateway_route = true
+       enable_dns_hostnames = true
+       enable_dns_support   = true
+
+4. DB Initial Setup using [Flyway](https://flywaydb.org/)
+   
+   Hibernate DDL creation is a nice feature for PoCs or small projects. For more significant projects that have a complex deployment workflow and features like version rollback in case of a significant issue, the solution is not sufficient.
+
+   There are several tools to handle database migrations, and one of the most popular is Flyway, which works flawlessly with Spring Boot. Briefly, Flyway looks for SQL scripts on our project’s resource path and runs all scripts not previously executed in a defined order. Flyway stores what files were executed into a particular table called SCHEMA_VERSION.
+
+   To implement Flyway in our codebase we follow below steps:
+
+   - Added Flyway dependency in the [build.gradle](./build.gradle):
+   ```
+   implementation 'org.flywaydb:flyway-core:9.8.1'
+   ```
+   
+   - Created a new sub dir as `src/main/resources/db/migration/` where all the sql files will reside.
+   - Added a new sql file called [V1__ddl.sql](./src/main/resources/db/migration/V1__ddl.sql): By default, Flyway looks at files in the format V$X__$DESCRIPTION.sql, where $X is the migration version name.
+   - Update the application.yaml ddl-auto to validate, which will only validate if the required DB tables exist:
+     ```
+     spring:
+      jpa:
+        hibernate:
+          ddl-auto: validate
+     ```
+
+   When the application starts Flyway will use the [V1__ddl.sql](./src/main/resources/db/migration/V1__ddl.sql) file to create a new table.
+
+   ```sql
+   create table users (
+       id int8 not null,
+        date_of_birth date,
+        name varchar(255),
+        primary key (id)
+    );
+   ```
+   
+  Create new versions of the file to manage the DB schema.
+
+  The advantages of using this approach are:
+  - Create a database from scratch.
+  - Have a single source of truth for the version of the database state.
+  - Have a reproducible state of the database in local and remote environments.
+  - Automate database changes deployment, which helps to minimize human errors.
+  - Sync the DB changes and test along with the application. In our case Spring boot will first make the required DB changes ensuring the application do not fail due to non existence DB changes.
+
+  For this approach to work as expected we must first test the changes in lower environment and ensure all the tests pass and no errors detected.
+
+
+General Best practices around DB:
+- Ensure no public access is granted to DB unless for specific reason
+- No or Low replication strategy for non prod system for cost effectiveness.
+- Multiple replicas for Prod system
+- Prefer AWS Authentication mechanism
+- Use non admin/master accounts for DB usage and management
+- Use Read Replicas and Cache for read heavy operations
+- All the changes should be well tested in lower environments
+- Understand the technical and business needs to set the "Maintenance Window"
+
+Few follow other best practice guidelines from AWS here:
+
+https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_BestPractices.html
 
 ## Application
 
