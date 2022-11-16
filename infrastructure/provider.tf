@@ -17,5 +17,3 @@ provider "aws" {
   alias  = "region2"
   region = local.region2
 }
-
-data "aws_caller_identity" "current" {}
