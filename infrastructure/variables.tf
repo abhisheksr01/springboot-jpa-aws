@@ -1,3 +1,6 @@
+variable "aws_account_number" {
+  type = string
+}
 variable "environment_name" {
   type = string
 }
@@ -25,6 +28,7 @@ variable "aws_rds_db" {
     engine_version                        = string
     family                                = string
     major_engine_version                  = string
+    publicly_accessible                   = bool
     instance_class                        = string
     allocated_storage                     = number
     max_allocated_storage                 = number
@@ -48,26 +52,16 @@ variable "aws_rds_db" {
 }
 
 variable "vpc" {
-  default = {
-    cidr                                      = "value"
-    create_database_numberernet_gateway_route = false
-    create_database_subnet_group              = false
-    create_database_subnet_route_table        = false
-    database_subnets                          = ["value"]
-    enable_dns_hostnames                      = false
-    enable_dns_support                        = false
-    private_subnets                           = ["value"]
-    public_subnets                            = ["value"]
-  }
   type = object({
-    cidr                                      = string
-    public_subnets                            = set(string)
-    private_subnets                           = set(string)
-    database_subnets                          = set(string)
-    create_database_subnet_group              = bool
-    create_database_subnet_route_table        = bool
-    create_database_numberernet_gateway_route = bool
-    enable_dns_hostnames                      = bool
-    enable_dns_support                        = bool
+    cidr                                   = string
+    public_subnets                         = set(string)
+    private_subnets                        = set(string)
+    database_subnets                       = set(string)
+    create_database_subnet_group           = bool
+    create_database_subnet_route_table     = bool
+    create_database_internet_gateway_route = bool
+    create_database_internet_gateway_route = bool
+    enable_dns_hostnames                   = bool
+    enable_dns_support                     = bool
   })
 }

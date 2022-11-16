@@ -9,6 +9,7 @@ aws_rds_db = {
   engine_version                        = "14.5",
   family                                = "postgres14",
   major_engine_version                  = "14"
+  publicly_accessible                   = false
   instance_class                        = "db.t4g.large",
   allocated_storage                     = 20
   max_allocated_storage                 = 100
@@ -28,4 +29,16 @@ aws_rds_db = {
   monitoring_role_name                  = "springbootjpa-monitoring-role-name"
   monitoring_role_use_name_prefix       = true
   monitoring_role_description           = "Description for monitoring role"
+}
+
+vpc = {
+  cidr                                   = "10.99.0.0/18"
+  public_subnets                         = ["10.99.0.0/24", "10.99.1.0/24", "10.99.2.0/24"]
+  private_subnets                        = ["10.99.3.0/24", "10.99.4.0/24", "10.99.5.0/24"]
+  database_subnets                       = ["10.99.7.0/24", "10.99.8.0/24", "10.99.9.0/24"]
+  create_database_subnet_group           = false
+  create_database_subnet_route_table     = false
+  create_database_internet_gateway_route = false
+  enable_dns_hostnames                   = false
+  enable_dns_support                     = false
 }

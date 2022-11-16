@@ -4,7 +4,7 @@ module "db" {
 
   identifier = local.name
   #   Enable only for local testing or learning purpose, default value is false and is a recommended configuration.
-  #   publicly_accessible  = true
+  publicly_accessible = var.aws_rds_db.publicly_accessible
   #   All available versions: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts
   engine               = var.aws_rds_db.name
   engine_version       = var.aws_rds_db.engine_version
@@ -15,8 +15,8 @@ module "db" {
   allocated_storage     = var.aws_rds_db.allocated_storage
   max_allocated_storage = var.aws_rds_db.max_allocated_storage
 
-  db_name  = "completePostgresql"
-  username = "complete_postgresql"
+  db_name  = jsondecode(sensitive(data.aws_secretsmanager_secret_version.dbcreds.secret_string))["dbname"]
+  username = jsondecode(sensitive(data.aws_secretsmanager_secret_version.dbcreds.secret_string))["username"]
   port     = var.aws_rds_db.port
 
   multi_az               = var.aws_rds_db.multi_az
@@ -91,4 +91,12 @@ module "db_automated_backups_replication" {
   providers = {
     aws = aws.region2
   }
+}
+
+data "aws_secretsmanager_secret" "asm_secret" {
+  arn = local.secret_arn
+}
+
+data "aws_secretsmanager_secret_version" "dbcreds" {
+  secret_id = data.aws_secretsmanager_secret.asm_secret.id
 }

@@ -3,19 +3,19 @@ module "vpc" {
   version = "~> 3.0"
 
   name = local.name
-  cidr = "10.99.0.0/18"
+  cidr = var.vpc.cidr
 
   azs              = ["${local.region}a", "${local.region}b", "${local.region}c"]
-  public_subnets   = ["10.99.0.0/24", "10.99.1.0/24", "10.99.2.0/24"]
-  private_subnets  = ["10.99.3.0/24", "10.99.4.0/24", "10.99.5.0/24"]
-  database_subnets = ["10.99.7.0/24", "10.99.8.0/24", "10.99.9.0/24"]
+  public_subnets   = var.vpc.public_subnets
+  private_subnets  = var.vpc.private_subnets
+  database_subnets = var.vpc.database_subnets
 
-  create_database_subnet_group           = true
-  create_database_subnet_route_table     = true
-  create_database_internet_gateway_route = true
-
-  enable_dns_hostnames = true
-  enable_dns_support   = true
+  # Sometimes it is handy to have public access to RDS instances (it is not recommended for production) by specifying these arguments:
+  create_database_subnet_group           = var.vpc.create_database_subnet_group
+  create_database_subnet_route_table     = var.vpc.create_database_subnet_route_table
+  create_database_internet_gateway_route = var.vpc.create_database_internet_gateway_route
+  enable_dns_hostnames                   = var.vpc.enable_dns_hostnames
+  enable_dns_support                     = var.vpc.enable_dns_support
 
   tags = local.tags
 }
@@ -31,8 +31,8 @@ module "security_group" {
   # ingress
   ingress_with_cidr_blocks = [
     {
-      from_port   = 5432
-      to_port     = 5432
+      from_port   = var.aws_rds_db.port
+      to_port     = var.aws_rds_db.port
       protocol    = "tcp"
       description = "PostgreSQL access from within VPC"
       cidr_blocks = module.vpc.vpc_cidr_block
