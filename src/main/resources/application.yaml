@@ -14,8 +14,10 @@ spring:
     properties:
       hibernate:
         dialect: 'org.hibernate.dialect.PostgreSQLDialect'
+        show_sql: false
+        format_sql: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
       show: false
   datasource:
     driver-class-name: 'org.postgresql.Driver'
@@ -27,7 +29,9 @@ logging:
   level:
     org:
       springframework:
-        web: ERROR
+        web: DEBUG
+      hibernate:
+        type: DEBUG
     com:
       sampleapp:
         helloworld: DEBUG
@@ -44,7 +48,7 @@ spring:
       on-profile: prod
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       show: false
   datasource:
     driver-class-name: 'org.postgresql.Driver'
@@ -53,9 +57,9 @@ spring:
     password: secret
 
 logging:
-    com:
-      sampleapp:
-        helloworld: Info
+  com:
+    sampleapp:
+      helloworld: Info
 
 config:
   authUser: abhishek

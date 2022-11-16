@@ -349,6 +349,6 @@ docker compose down
 2. The username can contain spaces in between and if a username is provided with trailing spaces we will trim it.
 3. The Basic Auth mechanism is added to demonstrate how we can secure our API's in real world scenario we will prefer OAuth 2.0.
 4. All the credentials (Basic Auth and DB credentials) are replaced in CICD pipeline.</br> Additionally, we have used Spring's Active profile concept to load prod environment specific configuration by setting `SPRING_PROFILE_ACTIVE=prod` environment variable.
-5. The application expects a Postgress Database to be already provisioned before the application deployment and appropriate credentials are shared.
+5. The application expects a Postgres Database to be already provisioned before the application deployment and appropriate credentials are shared.
 
 You can refer [another repository by clicking here](https://github.com/abhisheksr01/spring-boot-microservice-best-practices) to learn more about individual tools and mechanism used in this repository.
