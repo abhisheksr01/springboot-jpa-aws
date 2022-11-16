@@ -3,45 +3,42 @@ module "db" {
   version = "5.1.1"
 
   identifier = local.name
+  #   Enable only for local testing or learning purpose, default value is false and is a recommended configuration.
+  #   publicly_accessible  = true
+  #   All available versions: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts
+  engine               = var.aws_rds_db.name
+  engine_version       = var.aws_rds_db.engine_version
+  family               = var.aws_rds_db.family               # DB parameter group
+  major_engine_version = var.aws_rds_db.major_engine_version # DB option group
+  instance_class       = var.aws_rds_db.instance_class
 
-  # All available versions: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts
-  publicly_accessible  = true
-  engine               = "postgres"
-  engine_version       = "14.5"
-  family               = "postgres14" # DB parameter group
-  major_engine_version = "14"         # DB option group
-  instance_class       = "db.t4g.large"
+  allocated_storage     = var.aws_rds_db.allocated_storage
+  max_allocated_storage = var.aws_rds_db.max_allocated_storage
 
-  allocated_storage     = 20
-  max_allocated_storage = 100
-
-  # NOTE: Do NOT use 'user' as the value for 'username' as it throws:
-  # "Error creating DB Instance: InvalidParameterValue: MasterUsername
-  # user cannot be used as it is a reserved word used by the engine"
   db_name  = "completePostgresql"
   username = "complete_postgresql"
-  port     = 5432
+  port     = var.aws_rds_db.port
 
-  multi_az               = true
+  multi_az               = var.aws_rds_db.multi_az
   db_subnet_group_name   = module.vpc.database_subnet_group
   vpc_security_group_ids = [module.security_group.security_group_id]
 
-  maintenance_window              = "Mon:00:00-Mon:03:00"
-  backup_window                   = "03:00-06:00"
-  enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
-  create_cloudwatch_log_group     = true
+  maintenance_window              = var.aws_rds_db.maintenance_window
+  backup_window                   = var.aws_rds_db.backup_window
+  enabled_cloudwatch_logs_exports = var.aws_rds_db.enabled_cloudwatch_logs_exports
+  create_cloudwatch_log_group     = var.aws_rds_db.create_cloudwatch_log_group
 
-  backup_retention_period = 1
-  skip_final_snapshot     = true
-  deletion_protection     = false
+  backup_retention_period = var.aws_rds_db.backup_retention_period
+  skip_final_snapshot     = var.aws_rds_db.skip_final_snapshot
+  deletion_protection     = var.aws_rds_db.deletion_protection
 
-  performance_insights_enabled          = true
-  performance_insights_retention_period = 7
-  create_monitoring_role                = true
-  monitoring_interval                   = 60
-  monitoring_role_name                  = "example-monitoring-role-name"
-  monitoring_role_use_name_prefix       = true
-  monitoring_role_description           = "Description for monitoring role"
+  performance_insights_enabled          = var.aws_rds_db.performance_insights_enabled
+  performance_insights_retention_period = var.aws_rds_db.performance_insights_retention_period
+  create_monitoring_role                = var.aws_rds_db.create_monitoring_role
+  monitoring_interval                   = var.aws_rds_db.monitoring_interval
+  monitoring_role_name                  = var.aws_rds_db.monitoring_role_name
+  monitoring_role_use_name_prefix       = var.aws_rds_db.monitoring_role_use_name_prefix
+  monitoring_role_description           = var.aws_rds_db.monitoring_role_description
 
   parameters = [
     {
@@ -66,8 +63,6 @@ module "db" {
 ################################################################################
 # RDS Automated Backups Replication Module
 ################################################################################
-
-
 module "kms" {
   source      = "terraform-aws-modules/kms/aws"
   version     = "~> 1.0"
