@@ -150,8 +150,22 @@ For the sake of simplicity the diagram has abstracted low level internal working
    After retrieving the data from DB the response is sent with appropriate information.
 5. Postgres DB: Here the data is persisted.
 
+### AWS Infrastructure Provisioning
+
 Provisioning of the infrastructure is typically managed by a separate team (Platform or Site Reliability Engineering team).
 They use Infrastructure as code such as Terraform, Ansible, AWS CDK etc for the same.
+
+Discuss database setup, installation, schema installation/upgrade. How would that be handled in the infrastructure and application deployment.
+
+In this repository we are using Terraform for provisioning a Postgres RDS Instance on AWS.
+
+- Terraform Modules
+  https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest
+  Note: Highlight key concepts
+
+- [Flyway](https://flywaydb.org/)
+  Note: For managing the DB DDL
+  https://dzone.com/articles/build-a-spring-boot-app-with-flyway-and-postgres
 
 ## Application
 
