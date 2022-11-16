@@ -181,28 +181,28 @@ Prerequisite:
 
    > This is a one time setup and should not be repeated
    
-   Terraform uses backend for storing the TF  Infrastructure state to know what resources it needs to  provision, change or de provision. In AWS it uses S3 buckets for storing the statefile.
+   Terraform uses backend for storing the TF Infrastructure state to know what resources it needs to  provision, change or de provision. In AWS it uses S3 buckets for storing the statefile.
 
     <details>
-      <summary> Click here to learn more about backend    configuration </summary></br>
+      <summary> Click here to learn more about backend configuration </summary></br>
     
       ### Problem
-      Before we begin to start provisioning autonomous    infrastructure and the platforms through pipelines etc    we have to do some bootstrapping work such as creating a   bucket for storing Terraform backend and creating IAM    roles for allowing cross account access with admin    privileges so that we can assume the role to create    further resources without switching credentials for    different AWS Accounts.
+      Before we begin to start provisioning autonomous infrastructure and the platforms through pipelines etc    we have to do some bootstrapping work such as creating a   bucket for storing Terraform backend and creating IAM    roles for allowing cross account access with admin privileges so that we can assume the role to create further resources without switching credentials for    different AWS Accounts.
     
-      This is the chicken and the egg paradox where one has     some dependency on another.
+      This is the chicken and the egg paradox where one has some dependency on another.
       ### Aim or Solution
-      Instead of going to the console and manually creating     the bootstrap infrastructure, we will use Terraform to    provision the resources and then store the state to the   remote bucket.
+      Instead of going to the console and manually creating the bootstrap infrastructure, we will use Terraform to    provision the resources and then store the state to the   remote bucket.
     
-      The very first thing that will have to do is to create    an S3 backend bucket for storing the state of  the    Terraform execution for this repository.
+      The very first thing that will have to do is to create an S3 backend bucket for storing the state of  the    Terraform execution for this repository.
     
-      Then create Cross Account IAM role so that we can use it    for further infrastructure provisioning.
+      Then create Cross Account IAM role so that we can use it for further infrastructure provisioning.
       ### Execution
     
       </b>Provisioning backend S3 bucket in Dev Account:</b>
     
-      1. Comment the `backend "s3" {}` section in the     `infrastructure/backend/provider.tf` file as we     currently do not have an S3 bucket to store the state     file.
+      1. Comment the `backend "s3" {}` section in the `infrastructure/backend/provider.tf` file as we     currently do not have an S3 bucket to store the state file.
       2. Authenticate AWS CLI with your credentials
-      3. Once done navigate to `infrastructure/backend`     directory and execute below make command to initialize    terraform:
+      3. Once done navigate to `infrastructure/backend` directory and execute below make command to initialize terraform:
       ```
       terraform init
       ```
@@ -260,6 +260,7 @@ Prerequisite:
         monitoring_role_name                  = "springbootjpa-monitoring-role-name"
         monitoring_role_use_name_prefix       = true
         monitoring_role_description           = "Description for monitoring  role"
+      }
      ```
 
      Based on our requirements for the DB we can alter any of the above property.
@@ -286,15 +287,18 @@ Prerequisite:
 
      [Click here to learn more about it.](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html)
 
-     > Public access to RDS instances
+     - Public access to RDS instances:
+
        Sometimes it is handy to have public access to RDS instances (it is not recommended for production) by specifying these arguments:
+       ```
        create_database_subnet_group           = true
        create_database_subnet_route_table     = true
        create_database_internet_gateway_route = true
        enable_dns_hostnames = true
        enable_dns_support   = true
+       ```
 
-4. DB Initial Setup using [Flyway](https://flywaydb.org/)
+4. DB Initial Setup and DDL management using [Flyway](https://flywaydb.org/)
    
    Hibernate DDL creation is a nice feature for PoCs or small projects. For more significant projects that have a complex deployment workflow and features like version rollback in case of a significant issue, the solution is not sufficient.
 
@@ -327,30 +331,57 @@ Prerequisite:
         primary key (id)
     );
    ```
-   
-  Create new versions of the file to manage the DB schema.
 
-  The advantages of using this approach are:
-  - Create a database from scratch.
-  - Have a single source of truth for the version of the database state.
-  - Have a reproducible state of the database in local and remote environments.
-  - Automate database changes deployment, which helps to minimize human errors.
-  - Sync the DB changes and test along with the application. In our case Spring boot will first make the required DB changes ensuring the application do not fail due to non existence DB changes.
+    Create new versions of the file to manage the DB schema.
 
-  For this approach to work as expected we must first test the changes in lower environment and ensure all the tests pass and no errors detected.
+    The advantages of using this approach are:
+    - Create a database from scratch.
+    - Have a single source of truth for the version of the database state.
+    - Have a reproducible state of the database in local and remote environments.
+    - Automate database changes deployment, which helps to minimize human errors.
+    - Sync the DB changes and test along with the application. In our case Spring boot will first make the required DB changes ensuring the   application do not fail due to non existence DB changes.
+
+    For this approach to work as expected, we must first test the changes in lower environment and ensure all the tests pass and no errors  detected.
+
+  5. API versioning strategy for DDL management and Application deployment
+
+     The Flyway approach works best with smaller DB with Microservice Architecture.
+     
+     But all the teams or organization might not prefer the Flyway approach towards the DB DDL management for multiple reasons.
+     - Separation of DB Management & Application Deployment
+     - DB used by multiple Teams or Services
+     - Compliance and Security reasons etc
+
+     In these scenarios a separate team or DBA's first apply the DDL changes (recommendation is to do in it Immutable manner) and then new version of API is deployed.
+
+     The old version of the API will support the existing functionality with the help of a Mapper/Converter which we can slowly deprecate over the time.
+
+     For this strategy to work appropriately:
+     - Should have consistent and established API Versioning strategy
+     - Strategy to deploy the changes to manage the dependency
+     - Very strong & reliable Automation test suite to detect any issues
+     - Coordination between all the concerned teams
+     - Real time or Low latency data replication to avoid data loss if any
+  
+  7. DDL changes with downtime
+     
+     If the application has scope for downtime and all the key stakeholders agree we can perform the DB changes and application deployment with some downtime.
+
+     All the above strategies above is still applicable to this strategy as well. 
 
 
-General Best practices around DB:
-- Ensure no public access is granted to DB unless for specific reason
-- No or Low replication strategy for non prod system for cost effectiveness.
-- Multiple replicas for Prod system
-- Prefer AWS Authentication mechanism
-- Use non admin/master accounts for DB usage and management
-- Use Read Replicas and Cache for read heavy operations
-- All the changes should be well tested in lower environments
-- Understand the technical and business needs to set the "Maintenance Window"
+  8. General Best practices around DB:
+  - Ensure no public access is granted to DB unless for specific reason
+  - No or Low replication strategy for non prod system for cost effectiveness.
+  - Multiple replicas for Prod system
+  - While performing the DB changes and application deployment ensure we have a robust rollback strategy
+  - Prefer AWS Authentication mechanism
+  - Use non admin/master accounts for DB usage and management
+  - Use Read Replicas and Cache for read heavy operations
+  - All the changes should be well tested in lower environments
+  - Understand the technical and business needs to set the "Maintenance Window"
 
-Few follow other best practice guidelines from AWS here:
+You can refer below link for AWS Recommendation for Amazon RDS:
 
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_BestPractices.html
 
