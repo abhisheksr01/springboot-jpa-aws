@@ -3,7 +3,7 @@ trigger:
     include:
     - main
   paths:
-    include::
+    include:
      - infrastructure
      - azure-infrastructure-pipeline.yml
 
