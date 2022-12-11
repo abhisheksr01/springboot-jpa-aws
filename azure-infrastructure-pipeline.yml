@@ -1,0 +1,187 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include::
+     - infrastructure
+     - azure-infrastructure-pipeline.yml
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: TerraformCodeAnalysis
+    displayName: Terraform Code Analysis
+    dependsOn: []
+    jobs:
+      - job: TerraformCodeAnalysis
+        displayName: "Terraform Code Analysis"
+        dependsOn: []
+        steps:
+          - task: TerraformInstaller@0
+            displayName: install terraform
+            inputs:
+              terraformVersion: 1.3.3
+          - task: TerraformTaskV3@3
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+          - script: |
+              sudo apt update && sudo apt install curl unzip -y
+              curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+              tflint --init
+            workingDirectory: infrastructure/sap_environment
+            displayName: "Install Dependencies"
+          - script: tflint && terraform fmt && terraform validate && terraform --version
+            workingDirectory: infrastructure/sap_environment
+            displayName: "Terraform lint"
+
+  # STAGE: Terraform Compliance
+  - stage: TerraformComplianceCheck
+    displayName: Terraform Compliance Check
+    dependsOn: ["TerraformCodeAnalysis"]
+    jobs:
+      - job: TerraformComplianceCheck
+        displayName: "Terraform Compliance Check"
+        dependsOn: []
+        steps:
+          - task: TerraformInstaller@0
+            displayName: Install Terraform
+            inputs:
+              terraformVersion: 1.3.3
+          - task: TerraformTaskV3@3
+            displayName: Terraform Init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+          - task: TerraformTaskV3@3
+            displayName: Terraform Plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+              environmentServiceNameAzureRM: 'UK-DevOps-POC-SPN'
+              commandOptions: "-out=plan.out"
+
+          - task: UsePythonVersion@0
+            displayName: Use Python v3.9
+            inputs:
+              versionSpec: '3.9'
+              architecture: 'x64'
+
+          - script: |
+              python -m venv venv
+              source venv/bin/activate
+              python -m pip install --upgrade pip
+              pip install terraform-compliance
+            displayName: 'Install Python Dependencies'
+           
+          - script: |
+              source venv/bin/activate
+              cd infrastructure/sap_environment
+              terraform-compliance -f tests -p plan.out 
+            displayName: 'Run Terraform Compliance Check'
+
+  - stage: TerraformPlan
+    displayName: Terraform Plan
+    dependsOn: ["TerraformComplianceCheck"]
+    jobs:
+      - job: TerraformPlan
+        displayName: "Terraform Plan"
+        steps:
+          - task: TerraformInstaller@0
+            displayName: install terraform
+            inputs:
+              terraformVersion: 1.3.3
+          - task: TerraformTaskV3@3
+            displayName: Terraform Init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+          - task: TerraformTaskV3@3
+            displayName: Terraform Plan
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+              environmentServiceNameAzureRM: 'UK-DevOps-POC-SPN'
+  - stage: ProvisionApproval
+    displayName: Approve to Provision
+    dependsOn: ["TerraformPlan"]
+    jobs:
+      - job: waitForValidation
+        displayName: Wait for external validation
+        pool: server
+        timeoutInMinutes: 4320 # job times out in 3 days
+        steps:
+        - task: ManualValidation@0
+          timeoutInMinutes: 1440 # task times out in 1 day
+          inputs:
+            notifyUsers: |
+              abhishek.rajput@armakuni.com
+            instructions: 'Please validate the build configuration and resume'
+            onTimeout: 'resume'
+  - stage: TerraformApply
+    displayName: Terraform Apply
+    dependsOn: ["ProvisionApproval"]
+    jobs:
+      - job: TerraformApply
+        displayName: "Terraform Apply"
+        steps:
+          - task: TerraformInstaller@0
+            displayName: install terraform
+            inputs:
+              terraformVersion: 1.3.3
+          - task: TerraformTaskV3@3
+            displayName: Terraform Init
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+          - task: TerraformTaskV3@3
+            displayName: Terraform Apply
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              backendServiceArm: 'UK-DevOps-POC-SPN'
+              backendAzureRmResourceGroupName: 'ABHIITST-DevOpsPOC-Bootstrap'
+              backendAzureRmStorageAccountName: 'infrabackendstates'
+              backendAzureRmContainerName: 'infrastructure'
+              backendAzureRmKey: terraform.tfstate
+              workingDirectory: infrastructure/sap_environment
+              environmentServiceNameAzureRM: 'UK-DevOps-POC-SPN'
+  
