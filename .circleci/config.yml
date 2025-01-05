@@ -313,6 +313,7 @@ workflows:
           requires:
             - Build
       - check_dependency_vulnerability:
+          <<: *credential_context
           name: Dependency Vulnerability Checks
           timeout: 25m
           requires:
