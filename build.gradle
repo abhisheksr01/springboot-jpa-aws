@@ -68,27 +68,15 @@ dependencies {
      *https://docs.gradle.org/current/userguide/dependency_management.html#sec:module_substitution
      * Example 109. Example: Blacklisting a version with a replacement
     */
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'org.yaml' && details.requested.name == 'snakeyaml' && details.requested.version == '1.30') {
-                details.useVersion '1.33'
-                details.because 'Fixes vulnerability in prior snakeyaml versions'
+            if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress' && details.requested.version == '1.24.0') {
+                details.useVersion '1.26.0'
+                details.because 'Fixes vulnerability in prior commons-compress versions'
             }
-        }
-    }
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava' && details.requested.version == '21.0') {
-                details.useVersion '31.1-jre'
-                details.because 'Fixes vulnerability in prior guava versions'
-            }
-        }
-    }
-    configurations.all {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'commons-beanutils' && details.requested.name == 'commons-beanutils' && details.requested.version == '1.9.3') {
-                details.useVersion '1.9.4'
-                details.because 'Fixes vulnerability in prior versions'
+            if (details.requested.group == 'ch.qos.logback' && details.requested.name == 'logback-classic' && details.requested.version == '1.5.12') {
+                details.useVersion '1.5.13'
+                details.because 'Fixes vulnerability in prior logback-classic versions'
             }
         }
     }
