@@ -169,7 +169,7 @@ jobs:
       - run:
           name: Perform Dependency Vulnerability Checks
           no_output_timeout: << parameters.timeout >>
-          command: ./gradlew dependencyCheckAnalyze
+          command: ./gradlew clean dependencyCheckAnalyze -PUseNVDKey
       - *save_dependency_vulnerability_cache
       - store_test_results:
           path: build/reports/dependency-vulnerabilities
