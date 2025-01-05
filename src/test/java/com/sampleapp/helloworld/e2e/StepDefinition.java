@@ -49,7 +49,7 @@ public class StepDefinition extends SpringIntegration {
     public void the_api_should_return_a_response_with_status_code_and_phrase
             (int expectedStatusCode, String expectedPhrase) {
         assertEquals(expectedStatusCode, responseEntity.getStatusCodeValue());
-        assertEquals(expectedPhrase, responseEntity.getStatusCode().getReasonPhrase());
+        assertEquals(expectedPhrase, responseEntity.getStatusCode());
     }
 
     @Given("User {string} birthday is today")

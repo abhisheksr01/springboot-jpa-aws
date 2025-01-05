@@ -1,16 +1,16 @@
 plugins {
-    id 'org.springframework.boot' version '2.7.5'
-    id 'io.spring.dependency-management' version '1.0.13.RELEASE'
     id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
-    id 'info.solidsoft.pitest' version '1.9.0'
-    id "org.owasp.dependencycheck" version "7.2.1"
+    id 'info.solidsoft.pitest' version '1.15.0'
+    id "org.owasp.dependencycheck" version "11.1.1"
 }
 
 String buildId = project.hasProperty('buildId') ? project['buildId'] : 'DEV'
 group = 'com.sampleapp'
 version = "${semanticVersion}.${buildId}"
-// sourceCompatibility = '1.8'
+sourceCompatibility = '21'
 
 /** Disables generating plain jar introduced in spring boot 2.5.0
  **  https://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/htmlsingle/#packaging-executable.and-plain-archives
@@ -24,12 +24,14 @@ repositories {
 }
 
 ext {
-    mapstructVersion = "1.5.2.Final"
-    lombokVersion = "1.18.24"
-    ioCucumberVersion = "7.8.0"
-    jacocoVersion = "0.8.5"
-    pitest = "0.16"
-    junitVintage = "5.9.0"
+    mapstructVersion = "1.6.3"
+    lombokVersion = "1.18.36"
+    wireMockVersion = "3.10.0"
+    ioCucumberVersion = "7.20.1"
+    springDocVersion = "2.7.0"
+    jacocoVersion = "0.8.9"
+    junitVintage = "5.11.4"
+    jakartaValidation = "3.1.0"
 }
 
 dependencies {
@@ -39,16 +41,18 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.springframework.boot:spring-boot-starter-validation')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+    implementation "jakarta.validation:jakarta.validation-api:${jakartaValidation}"
+
     // Cucumber Dependencies for BDD
     testImplementation "io.cucumber:cucumber-java:${ioCucumberVersion}"
     testImplementation "io.cucumber:cucumber-junit:${ioCucumberVersion}"
     testImplementation "io.cucumber:cucumber-spring:${ioCucumberVersion}"
     testImplementation "org.junit.vintage:junit-vintage-engine:${junitVintage}"
-    testImplementation 'org.testcontainers:postgresql:1.17.5'
+    testImplementation 'org.testcontainers:postgresql:1.20.4'
     testImplementation "org.testcontainers:junit-jupiter:1.17.5"
 
-    implementation 'org.postgresql:postgresql:42.5.0'
-    implementation 'org.flywaydb:flyway-core:9.8.1'
+    implementation 'org.postgresql:postgresql:42.7.4'
+    implementation 'org.flywaydb:flyway-core:11.1.0'
     //Lombok Dependencies
     implementation "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -57,8 +61,6 @@ dependencies {
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    //pitest
-    implementation "org.pitest:pitest-junit5-plugin:${pitest}"
 
     /*
      *https://docs.gradle.org/current/userguide/dependency_management.html#sec:module_substitution
@@ -110,11 +112,10 @@ test {
     useJUnitPlatform()
 }
 
-
 // Jacoco for Code Coverage
 jacoco {
     toolVersion = "${jacocoVersion}"
-    reportsDir = file("$buildDir/customJacocoReportDir")
+    reportsDirectory = file("$buildDir/customJacocoReportDir")
 }
 
 // Runs Jacoco tasks when build task is executed
@@ -125,17 +126,10 @@ build {
 // Setting custom parameters when executing jacocoTestReport task
 jacocoTestReport {
     reports {
-        xml.enabled false
-        csv.enabled false
-        html.destination file("${buildDir}/reports/jacocoHtml")
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir("${buildDir}/reports/jacocoHtml")
     }
-//    afterEvaluate {
-//        classDirectories.setFrom(files(classDirectories.files.collect {
-//            fileTree(dir: it,
-//                    exclude: ['**/mapper/**']
-//            )
-//        }))
-//    }
 }
 
 // Setting custom parameters when executing jacocoTestCoverageVerification task for setting rules
@@ -162,7 +156,7 @@ jacocoTestCoverageVerification {
     }
 }
 pitest {
-    pitestVersion = "1.5.1"
+    junit5PluginVersion = '1.2.1'
     testPlugin = "junit5"
     targetClasses = ['com.sampleapp.helloworld.*']  // by default "${project.group}.*"
     targetTests = ['com.sampleapp.helloworld.*']  // by default "${project.group}.*"
@@ -172,7 +166,16 @@ pitest {
 // owasp dependency vulnerability check
 // Reference doc : https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
 dependencyCheck {
-    // the default artifact types that will be analyzed.
+    if (project.hasProperty('UseNVDKey')) {
+        println 'Executing DependencyCheckAnalyse with the NVD_API_KEY environment variable'
+        nvd {
+            apiKey = System.getenv('NVD_API_KEY')
+            delay = 3500
+        }
+    } else {
+        println 'Executing DependencyCheckAnalyse without NVD API Key'
+    }
+
     analyzedTypes = ['jar']
     // CI-tools usually needs XML-reports, but humans needs HTML.
     formats = ['HTML', 'JUNIT']
@@ -182,6 +185,4 @@ dependencyCheck {
     outputDirectory = "build/reports/dependency-vulnerabilities"
     // specify a list of known issues which contain false-positives to be suppressed
     suppressionFiles = ["$projectDir/config/dependencycheck/dependency-check-suppression.xml"]
-    // Sets the number of hours to wait before checking for new updates from the NVD, defaults to 4.
-    cveValidForHours = 24
 }

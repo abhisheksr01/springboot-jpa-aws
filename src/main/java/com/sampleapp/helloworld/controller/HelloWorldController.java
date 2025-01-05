@@ -2,6 +2,7 @@ package com.sampleapp.helloworld.controller;
 
 import com.sampleapp.helloworld.service.HelloWorldService;
 import com.sampleapp.helloworld.service.UserDetailsVO;
+import jakarta.validation.Valid;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.ZoneId;
 

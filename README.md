@@ -237,7 +237,7 @@ Prerequisite:
         region                                = "eu-west-2",
         region2                               = "eu-west-1",
         engine                                = "postgres"
-        engine_version                        = "14.5",
+        engine_version                        = "15",
         family                                = "postgres14",
         major_engine_version                  = "14"
         publicly_accessible                   = false
