@@ -74,10 +74,6 @@ dependencies {
                 details.useVersion '1.26.0'
                 details.because 'Fixes vulnerability in prior commons-compress versions'
             }
-            if (details.requested.group == 'ch.qos.logback' && details.requested.name == 'logback-classic' && details.requested.version == '1.5.12') {
-                details.useVersion '1.5.13'
-                details.because 'Fixes vulnerability in prior logback-classic versions'
-            }
         }
     }
 }

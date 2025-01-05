@@ -8,7 +8,8 @@ ARG APPJAR=build/libs/helloworld-*.jar
 
 COPY ${APPJAR} helloworld-*.jar
 
-ENTRYPOINT ["java","-jar","helloworld-*.jar"]
-
 RUN groupadd --gid 10001 rungroup && useradd --uid 10001 --gid 10001 runuser
+
 USER runuser:rungroup
+
+ENTRYPOINT ["java","-jar","helloworld-*.jar"]
