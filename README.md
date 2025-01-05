@@ -4,16 +4,16 @@
 
 - [Introduction](#introduction)
 - [Architecture](#architecture)
-    - [Microservice Structure](#microservice-structure)
-    - [Continuous Integration, Delivery and Deployment](#continuous-integration-delivery-and-deployment)
-    - [AWS System Architecture](#aws-system-architecture)
+  - [Microservice Structure](#microservice-structure)
+  - [Continuous Integration, Delivery and Deployment](#continuous-integration-delivery-and-deployment)
+  - [AWS System Architecture](#aws-system-architecture)
 - [AWS Infrastructure Provisioning](#aws-infrastructure-provisioning)
 - [Application](#application)
-    - [Prerequisites](#prerequisites)
-    - [Installation and Getting Started](#installation-and-getting-started)
-    - [Development Practice](#development-practice)
-    - [Automated Tests](#automated-tests)
-    - [Manual Testing or Starting App locally](#manual-testing-or-starting-app-locally)
+  - [Prerequisites](#prerequisites)
+  - [Installation and Getting Started](#installation-and-getting-started)
+  - [Development Practice](#development-practice)
+  - [Automated Tests](#automated-tests)
+  - [Manual Testing or Starting App locally](#manual-testing-or-starting-app-locally)
 - [Assumptions and Considerations](#assumptions-and-considerations)
 
 ## Introduction
@@ -35,6 +35,7 @@ The application exposes 2 endpoints as below:
 
    Response Examples:
    A. If username’s birthday is in N days:
+
     ```json
       {
         "message": "Hello, <username>! Your birthday is in N day(s)"
@@ -42,6 +43,7 @@ The application exposes 2 endpoints as below:
     ```
 
    B. If username’s birthday is today:
+
     ```json
       {
          "message": "Hello, <username>! Happy birthday!"
@@ -97,14 +99,13 @@ Pictorial representation of the above two CD approaches:
 
 Reference :
 
-- https://martinfowler.com/articles/continuousIntegration.html
-- https://martinfowler.com/bliki/ContinuousDelivery.html
-- https://dzone.com/articles/continuous-delivery-vs-continuous-deployment-an-ov
+- <https://martinfowler.com/articles/continuousIntegration.html>
+- <https://martinfowler.com/bliki/ContinuousDelivery.html>
+- <https://dzone.com/articles/continuous-delivery-vs-continuous-deployment-an-ov>
 
-> Note: 
+> Note:
 > In a real world scenario we will have at least development, preproduction/qa and production environments and the changes are well tested before progressing to the stage/job.
 > For simplicity and ease of understanding we are only deploying to a single environment.
-
 
 1. We are using [CircleCI](https://circleci.com/) to achieve the principles of CICD and [config file](.circleci/config.yml) is stored in `.circleci/config.yml`.
 
@@ -180,51 +181,61 @@ Prerequisite:
 2. Infrastructure Backend setup
 
    > This is a one time setup and should not be repeated
-   
+
    Terraform uses backend for storing the TF Infrastructure state to know what resources it needs to  provision, change or de provision. In AWS it uses S3 buckets for storing the statefile.
 
     <details>
       <summary> Click here to learn more about backend configuration </summary></br>
-    
-      ### Problem
+
+   ### Problem
+
       Before we begin to start provisioning autonomous infrastructure and the platforms through pipelines etc    we have to do some bootstrapping work such as creating a   bucket for storing Terraform backend and creating IAM    roles for allowing cross account access with admin privileges so that we can assume the role to create further resources without switching credentials for    different AWS Accounts.
-    
+
       This is the chicken and the egg paradox where one has some dependency on another.
-      ### Aim or Solution
+
+   ### Aim or Solution
+
       Instead of going to the console and manually creating the bootstrap infrastructure, we will use Terraform to    provision the resources and then store the state to the   remote bucket.
-    
+
       The very first thing that will have to do is to create an S3 backend bucket for storing the state of  the    Terraform execution for this repository.
-    
+
       Then create Cross Account IAM role so that we can use it for further infrastructure provisioning.
-      ### Execution
-    
+
+   ### Execution
+
       </b>Provisioning backend S3 bucket in Dev Account:</b>
-    
+
       1. Comment the `backend "s3" {}` section in the `infrastructure/backend/provider.tf` file as we     currently do not have an S3 bucket to store the state file.
       2. Authenticate AWS CLI with your credentials
       3. Once done navigate to `infrastructure/backend` directory and execute below make command to initialize terraform:
+
       ```
       terraform init
       ```
+
       4. Run make plan to see the changes:
+
       ```
       terraform plan
       ```
+
       5. Once you see the planned changes, run make apply     command and type `yes` when prompted:ake plan to  see     the changes:
+
       ```
       terraform apply
       ```
+
       6. Once terraform changes are applied successfully  uncomment the `backend "s3" {}` section in the `infrastructure/backend/provider.tf` and run below   command so the local Terraform state gets stored in   the S3 bucket.
-    
+
       ```
       terraform init -migrate-state -backend-config=./    backend-config.hcl
       ```
+
       When prompted type `yes` and hit enter.
     </details></br>
 
+3. DB Provisioning
 
-  3. DB Provisioning
-     
      we are using a very popular [terraform-aws-modules/rds/aws](https://registry.terraform.io/modules/terraform-aws-modules/rds/aws/latest) module for provisioning a Postgres DB in AWS Cloud & [VPC](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest) module in which our RDS DB will be provisioned.
 
      The Terraform code will provision a single instance of DB in `eu-west-2` region and replication in `eu-west-1` for disaster recovery. This replicated DB can be used for READ heavy operations to keep the load on primary DB low.
@@ -272,15 +283,17 @@ Prerequisite:
      ```
 
      Execute below command to see what terraform will provision for us:
+
      ```
      terraform plan --var-file=./dev.tfvars
      ```
-    
+
      Execute below command to provision the infrastructure and when prompted enter `yes`:
+
      ```
      terraform apply --var-file=./dev.tfvars
      ```
-     
+
      By default the TF code creates a non publicly accessible RDS Instance which can only be accessed within the VPC. Hence the application should be deployed inside the same VPC.
 
      In case you wish to access from another VPC then you will have to create vpc peering.
@@ -290,6 +303,7 @@ Prerequisite:
      - Public access to RDS instances:
 
        Sometimes it is handy to have public access to RDS instances (it is not recommended for production) by specifying these arguments:
+
        ```
        create_database_subnet_group           = true
        create_database_subnet_route_table     = true
@@ -299,7 +313,7 @@ Prerequisite:
        ```
 
 4. DB Initial Setup and DDL management using [Flyway](https://flywaydb.org/)
-   
+
    Hibernate DDL creation is a nice feature for PoCs or small projects. For more significant projects that have a complex deployment workflow and features like version rollback in case of a significant issue, the solution is not sufficient.
 
    There are several tools to handle database migrations, and one of the most popular is Flyway, which works flawlessly with Spring Boot. Briefly, Flyway looks for SQL scripts on our project’s resource path and runs all scripts not previously executed in a defined order. Flyway stores what files were executed into a particular table called SCHEMA_VERSION.
@@ -307,13 +321,15 @@ Prerequisite:
    To implement Flyway in our codebase we follow below steps:
 
    - Added Flyway dependency in the [build.gradle](./build.gradle):
+
    ```
    implementation 'org.flywaydb:flyway-core:9.8.1'
    ```
-   
+
    - Created a new sub dir as `src/main/resources/db/migration/` where all the sql files will reside.
    - Added a new sql file called [V1__ddl.sql](./src/main/resources/db/migration/V1__ddl.sql): By default, Flyway looks at files in the format V$X__$DESCRIPTION.sql, where $X is the migration version name.
    - Update the application.yaml ddl-auto to validate, which will only validate if the required DB tables exist:
+
      ```
      spring:
       jpa:
@@ -343,10 +359,10 @@ Prerequisite:
 
     For this approach to work as expected, we must first test the changes in lower environment and ensure all the tests pass and no errors  detected.
 
-  5. API versioning strategy for DDL management and Application deployment
+5. API versioning strategy for DDL management and Application deployment
 
      The Flyway approach works best with smaller DB with Microservice Architecture.
-     
+
      But all the teams or organization might not prefer the Flyway approach towards the DB DDL management for multiple reasons.
      - Separation of DB Management & Application Deployment
      - DB used by multiple Teams or Services
@@ -363,27 +379,27 @@ Prerequisite:
      - Coordination between all the concerned teams
      - Real time or Low latency data replication to avoid data loss if any
   
-  7. DDL changes with downtime
-     
+7. DDL changes with downtime
+
      If the application has scope for downtime and all the key stakeholders agree we can perform the DB changes and application deployment with some downtime.
 
-     All the above strategies above is still applicable to this strategy as well. 
+     All the above strategies above is still applicable to this strategy as well.
 
+8. General Best practices around DB:
 
-  8. General Best practices around DB:
-  - Ensure no public access is granted to DB unless for specific reason
-  - No or Low replication strategy for non prod system for cost effectiveness.
-  - Multiple replicas for Prod system
-  - While performing the DB changes and application deployment ensure we have a robust rollback strategy
-  - Prefer AWS Authentication mechanism
-  - Use non admin/master accounts for DB usage and management
-  - Use Read Replicas and Cache for read heavy operations
-  - All the changes should be well tested in lower environments
-  - Understand the technical and business needs to set the "Maintenance Window"
+- Ensure no public access is granted to DB unless for specific reason
+- No or Low replication strategy for non prod system for cost effectiveness.
+- Multiple replicas for Prod system
+- While performing the DB changes and application deployment ensure we have a robust rollback strategy
+- Prefer AWS Authentication mechanism
+- Use non admin/master accounts for DB usage and management
+- Use Read Replicas and Cache for read heavy operations
+- All the changes should be well tested in lower environments
+- Understand the technical and business needs to set the "Maintenance Window"
 
 You can refer below link for AWS Recommendation for Amazon RDS:
 
-https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_BestPractices.html
+<https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_BestPractices.html>
 
 ## Application
 
@@ -400,6 +416,7 @@ In this section we will discuss how to use test, use the application and develop
 ### Installation and Getting Started
 
 Let us get started by Cloning or [Downloading](https://github.com/abhisheksr01/springboot-jpa/archive/refs/heads/main.zip) repository in your local workstation.
+
 ```shell
 git clone https://github.com/abhisheksr01/springboot-jpa.git
 ```
@@ -413,6 +430,7 @@ From the terminal/command prompt execute below command to download dependencies 
 ```shell
 ./gradlew clean build -x test
 ```
+
 You can visualise the codebase with the help of below diagram.
 
 ![Visualization of the codebase](./diagram.svg)
@@ -440,7 +458,6 @@ Additionally, we have used multiple utilities/practices to optimise our developm
 - Dependency Vulnerability Scanning
 - Snyk
 
-
 ### Automated Tests
 
 We are using Junit5 and Gherkins Cucumber for writing automated Unit and Cucumber based E2E tests respectively.
@@ -452,16 +469,21 @@ Ensure you have docker running as testcontainers uses it for DB simulation.
 [Click here to open helloworld.feature](src/test/resources/feature/helloworld.feature) file to see what E2E tests we are executing.
 
 Execute below command to run all the tests (Unit and Cucumber):
+
 ```shell
 ./gradlew test
 ```
+
 Once tests are executed you can see reports under `springboot-jpa/build/reports` directory.
 
 We can individually execute `e2e` test by executing below command:
+
 ```shell
 ./gradlew test -Pe2e=true
 ```
+
 Similarly execute below command to run only unit tests:
+
 ```shell
 ./gradlew test -Pexcludee2e=true
 ```
@@ -474,6 +496,7 @@ Similarly execute below command to run only unit tests:
 We will use docker compose to locally start the application and test the application functionality.
 
 From the root of this directory execute below commands:
+
 ```shell
 ./gradlew clean build -x test
 ```
@@ -483,6 +506,7 @@ To start the application and postgres DB locally.
 ```shell
 docker compose up -d
 ```
+
 The above command will read the instructions specified in the [docker-compose.yml](docker-compose.yml) file in the root of this project.
 
 First it will pull the postgres docker image and start the database container then build a local docker image from our codebase and then start the app docker container.
@@ -535,28 +559,35 @@ Once executed successfully you should see a response similar to below screenshot
 ![](./doc-resources/images/curl-put-get-request.png)
 
 3. When User does not exist
+
 ```shell
 curl --location --request GET 'http://localhost:8080/hello/sam' \
 --header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
 --header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105'
 ```
+
 Expected Error Response:
+
 ```text
 No user found, please check the username
 ```
 
 4. When Special characters are passed in username
+
 ```shell
 curl --location --request GET 'http://localhost:8080/hello/@abishek' \
 --header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
 --header 'Cookie: JSESSIONID=E4E5F52B085DA7B9F8B59A88A3A5E105'
 ```
+
 Expected Error Response:
+
 ```text
 UserName must contain only letters
 ```
 
 5. When the dateOfBirth is equal to current date
+
 ```shell
 curl --location --request PUT 'http://localhost:8080/hello/roger' \
 --header 'Authorization: Basic YWJoaXNoZWs6cmFqcHV0' \
@@ -568,9 +599,11 @@ curl --location --request PUT 'http://localhost:8080/hello/roger' \
 ```text
 Date of birth must be a date before the today date
 ```
+
 Once testing is done let us remove the containers by executing below command:
 
 Expected Error Response:
+
 ```shell
 docker compose down
 ```
