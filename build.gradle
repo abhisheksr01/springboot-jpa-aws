@@ -32,6 +32,7 @@ ext {
     jacocoVersion = "0.8.9"
     junitVintage = "5.11.4"
     jakartaValidation = "3.1.0"
+    flyway = "11.1.0"
 }
 
 dependencies {
@@ -52,7 +53,8 @@ dependencies {
     testImplementation "org.testcontainers:junit-jupiter:1.17.5"
 
     implementation 'org.postgresql:postgresql:42.7.4'
-    implementation 'org.flywaydb:flyway-core:11.1.0'
+    implementation "org.flywaydb:flyway-core:${flyway}"
+    runtimeOnly "org.flywaydb:flyway-database-postgresql:${flyway}"
     //Lombok Dependencies
     implementation "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"

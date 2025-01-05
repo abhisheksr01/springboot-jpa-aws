@@ -19,7 +19,7 @@ context: . container_name: app depends_on:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=create-only
 
 db:
-image: 'postgres:15-alpine' container_name: db ports: ["5432:5432"]
+image: 'postgres:14.5-alpine' container_name: db ports: ["5432:5432"]
 environment:
 
 - POSTGRES_USER=postgres
@@ -29,7 +29,7 @@ environment:
 
 # postgres-db
 
-# image: postgres:15-alpine
+# image: postgres:14.5-alpine
 
 # ports: ["5432:5432"]
 

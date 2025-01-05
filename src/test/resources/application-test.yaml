@@ -21,7 +21,7 @@ spring:
       show: false
   datasource:
     driver-class-name: 'org.testcontainers.jdbc.ContainerDatabaseDriver'
-    url: 'jdbc:tc:postgresql:15-alpine:///'
+    url: 'jdbc:tc:postgresql:14.5-alpine:///'
     username: postgres
     password: secret
 

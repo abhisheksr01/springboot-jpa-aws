@@ -45,11 +45,9 @@ public class StepDefinition extends SpringIntegration {
         }
     }
 
-    @Then("The API should return a response with status code {int} and phrase {string}")
-    public void the_api_should_return_a_response_with_status_code_and_phrase
-            (int expectedStatusCode, String expectedPhrase) {
-        assertEquals(expectedStatusCode, responseEntity.getStatusCodeValue());
-        assertEquals(expectedPhrase, responseEntity.getStatusCode());
+    @Then("The API should return a response with status code {string}")
+    public void the_api_should_return_a_response_with_status_code(String expectedStatusCode) {
+        assertEquals(expectedStatusCode, responseEntity.getStatusCode().toString());
     }
 
     @Given("User {string} birthday is today")
@@ -87,8 +85,8 @@ public class StepDefinition extends SpringIntegration {
         this.userDetails = requestString;
     }
 
-    @Then("The API should return a response with status code {int} and body")
-    public void the_api_should_return_a_response_with_status_code_and_body(Integer expectedStatusCode, String expectedError) {
-        assertEquals(expectedStatusCode + " : " + expectedError, this.exception.getMessage());
+    @Then("The API should return a response")
+    public void theAPIShouldReturnAResponse(String expectedResponse) {
+        assertEquals(expectedResponse, this.exception.getMessage());
     }
 }

@@ -7,7 +7,7 @@ Feature: Design and code a simple "Hello World" application that exposes the fol
       { "dateOfBirth": "1980-10-22" }
     """
     When The user makes a PUT request with name "abhishek" to save or update the details
-    Then The API should return a response with status code 204 and phrase "No Content"
+    Then The API should return a response with status code "204 NO_CONTENT"
 
   Scenario: Returns hello birthday message for the given user
     Given User "Singh" birthday is today
@@ -27,7 +27,7 @@ Feature: Design and code a simple "Hello World" application that exposes the fol
       { "jobDate": "2022-10-22" }
     """
     When The user makes a PUT request with name "abhishek" to save or update the details
-    Then The API should return a response with status code 400 and body
+    Then The API should return a response
     """
-    "{"dateOfBirth":"must not be null"}"
+    400 Bad Request on PUT request for "http://localhost:8081/hello/abhishek": "{"dateOfBirth":"must not be null"}"
     """
