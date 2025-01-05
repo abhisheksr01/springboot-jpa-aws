@@ -6,7 +6,7 @@ orbs:
 executors:
   base-jdk8:
     docker:
-      - image: cimg/openjdk:8.0
+      - image: cimg/openjdk:21.0
     environment:
       # Configure the JVM and Gradle to avoid OOM errors
       _JAVA_OPTIONS: "-Xmx3g"
