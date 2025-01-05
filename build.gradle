@@ -50,7 +50,7 @@ dependencies {
     testImplementation "io.cucumber:cucumber-spring:${ioCucumberVersion}"
     testImplementation "org.junit.vintage:junit-vintage-engine:${junitVintage}"
     testImplementation 'org.testcontainers:postgresql:1.20.4'
-    testImplementation "org.testcontainers:junit-jupiter:1.17.5"
+    testImplementation "org.testcontainers:junit-jupiter:1.20.4"
 
     implementation 'org.postgresql:postgresql:42.7.4'
     implementation "org.flywaydb:flyway-core:${flyway}"
