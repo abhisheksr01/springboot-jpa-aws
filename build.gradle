@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.2'
+    id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
     id 'info.solidsoft.pitest' version '1.15.0'
-    id "org.owasp.dependencycheck" version "12.0.1"
+    id "org.owasp.dependencycheck" version "12.1.1"
 }
 
 String buildId = project.hasProperty('buildId') ? project['buildId'] : 'DEV'
@@ -25,14 +25,14 @@ repositories {
 
 ext {
     mapstructVersion = "1.6.3"
-    lombokVersion = "1.18.36"
+    lombokVersion = "1.18.38"
     wireMockVersion = "3.10.0"
-    ioCucumberVersion = "7.20.1"
+    ioCucumberVersion = "7.22.1"
     springDocVersion = "2.7.0"
     jacocoVersion = "0.8.9"
-    junitVintage = "5.11.4"
-    jakartaValidation = "3.1.0"
-    flyway = "11.2.0"
+    junitVintage = "5.12.2"
+    jakartaValidation = "3.1.1"
+    flyway = "11.8.0"
 }
 
 dependencies {
@@ -49,8 +49,8 @@ dependencies {
     testImplementation "io.cucumber:cucumber-junit:${ioCucumberVersion}"
     testImplementation "io.cucumber:cucumber-spring:${ioCucumberVersion}"
     testImplementation "org.junit.vintage:junit-vintage-engine:${junitVintage}"
-    testImplementation 'org.testcontainers:postgresql:1.20.4'
-    testImplementation "org.testcontainers:junit-jupiter:1.20.4"
+    testImplementation 'org.testcontainers:postgresql:1.21.0'
+    testImplementation "org.testcontainers:junit-jupiter:1.21.0"
 
     implementation 'org.postgresql:postgresql:42.7.5'
     implementation "org.flywaydb:flyway-core:${flyway}"
